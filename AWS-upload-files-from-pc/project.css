@@ -1,0 +1,22 @@
+h1 {
+    font-family: sans-serif;
+    color: #333;
+}
+
+body {
+    margin: 50px;
+}
+
+#container {
+    margin: 0px auto;
+    width: 500px;
+    height: 300px;
+    border: 10px #333 solid;
+}
+
+#videoElement {
+    width: 500px;
+    height: 300px;
+    background-color: #666;
+}
+
