@@ -39,8 +39,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   bool _userLoggedIn = false;
 
-  /// The _logIn function logs the user in, for now it just opens the
-  /// main app and displays the bottom navigation bar,
+  /// The _logIn() function logs the user in, for now it just opens
+  /// the main app and displays the bottom navigation bar,
   void _logIn() {
     setState(() { 
       message = 'You Are Logged In';
@@ -58,10 +58,23 @@ class _MyHomePageState extends State<MyHomePage> {
   /// This is the list of pages. Right now each page is just a
   /// 'Center' object that displays the page name, but it should
   /// work well enough for you to start working on it.
+  
   late final List<Widget> _pages = [
     Center(child: Text('Home')),
-    Center(child: Text('Cameras')),
+
+    //Center(child: Text('Cameras')),
+    ListView(
+      scrollDirection: Axis.vertical,
+      
+      children: [
+        for (int i = 0; i < 10; i++) 
+          Padding(padding:EdgeInsetsGeometry.all(20), child: Container(height:100, color: Colors.blue))
+        
+      ]
+    ),
+
     Center(child: Text('History')),
+
     Center(child: Text('Settings')),
   ];
 
