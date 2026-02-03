@@ -7,16 +7,18 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  //This widget is the root of your application.
+  /// This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Shoplifting Detection System App',
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 40, 141, 209)),
       ),
       home: const MyHomePage(
-        title: 'Shoplifting Detection System App 2',
+        title: 'Shoplifting Detection System App',
       )
     );
   }
@@ -33,78 +35,110 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  //int _counter = 0;
   String message = 'You Are Logged Out';
+  int _selectedIndex = 0;
+  bool _userLoggedIn = false;
 
+  /// The _logIn function logs the user in, for now it just opens the
+  /// main app and displays the bottom navigation bar,
   void _logIn() {
-    setState(() { message = 'You Are Logged In'; });
+    setState(() { 
+      message = 'You Are Logged In';
+      _userLoggedIn = true;
+    });
   }
 
   void _logOut() {
-    setState(() { message = 'You Are Logged Out'; });
+    setState(() { 
+      message = 'You Are Logged Out'; 
+      _userLoggedIn = false;
+    });
   }
 
+  /// This is the list of pages. Right now each page is just a
+  /// 'Center' object that displays the page name, but it should
+  /// work well enough for you to start working on it.
+  late final List<Widget> _pages = [
+    Center(child: Text('Home')),
+    Center(child: Text('Cameras')),
+    Center(child: Text('History')),
+    Center(child: Text('Settings')),
+  ];
+
+  Widget _loginPage() {
+    return Center(
+      //mainAxisAlignment: .center,
+      child: Column(
+        mainAxisAlignment: .center,
+        children: [
+          const Text('Welcome'),
+         
+          Text(message),
+            
+          SizedBox(
+            width:80,
+            height:20,
+            child: FloatingActionButton(
+              onPressed: _logIn,
+              tooltip: 'Log In',
+              child: const Text('Log In'),
+              ),
+            ),
+
+          const SizedBox(height: 20),
+
+          SizedBox(
+            width:80,
+            height:20,
+            child: FloatingActionButton(
+              onPressed: _logOut,
+              tooltip: 'Log Out',
+              child: const Text('Log Out'),
+            ),
+          ),
+        ]
+      )
+    );
+  }
+
+  void _changePage(int page_index) {
+    setState(() { _selectedIndex = page_index; });
+  }
+
+  /// The build() function is called when runApp() is executed,
+  /// every widget declared in build() is displayed.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-              selectedItemColor: Colors.black,
-              unselectedItemColor: Colors.black, 
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Cameras'),
-                BottomNavigationBarItem(icon: Icon(Icons.login), label: 'History'),
-                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings')
-              ]
-            ),
+      
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: .center,
-          children: [
-            const Text('Welcome'),
-            
-            Text(message),
-            
-            SizedBox(
-              width:80,
-              height:20,
-              child: FloatingActionButton(
-                onPressed: _logIn,
-                tooltip: 'Log In',
-                child: const Text('Log In'),
-              ),
-            ),
 
-            const SizedBox(height: 20),
+      // if the user is logged in, display the home page, else display login page
+      body: _userLoggedIn ? IndexedStack(index: _selectedIndex, children: _pages,) : _loginPage(),
 
-            SizedBox(
-              width:80,
-              height:20,
-              child: FloatingActionButton(
-                onPressed: _logOut,
-                tooltip: 'Log Out',
-                child: const Text('Log Out'),
-              ),
-            ),
-            /*
-            BottomNavigationBar(
+      /**
+       * This is the bottom navigation bar (child of Scaffold).
+       * Each icon on the bar is a child of the bar.
+       * First, it checks if the user is logged in before being displayed.
+       * onTap: executes the function when an icon is pressed.
+       * currentIndex: index of the page that is selected (must be 0 < x < items.length)
+       */
+      bottomNavigationBar: _userLoggedIn ? BottomNavigationBar(
               selectedItemColor: Colors.black,
-              unselectedItemColor: Colors.black, 
+              unselectedItemColor: Colors.black,
+              type: BottomNavigationBarType.fixed,
+              onTap: _changePage,
+              currentIndex: _selectedIndex,
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
                 BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Cameras'),
-                BottomNavigationBarItem(icon: Icon(Icons.login), label: 'History'),
-                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings')
+                BottomNavigationBarItem(icon: Icon(Icons.book), label: 'History'),
+                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
               ]
-            )
-            */
-          ],
-        ),
-      ),
+            ) : null,
     );
   }
 }
