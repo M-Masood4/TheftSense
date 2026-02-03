@@ -47,6 +47,16 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: BottomNavigationBar(
+              selectedItemColor: Colors.black,
+              unselectedItemColor: Colors.black, 
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Cameras'),
+                BottomNavigationBarItem(icon: Icon(Icons.login), label: 'History'),
+                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings')
+              ]
+            ),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
@@ -80,6 +90,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text('Log Out'),
               ),
             ),
+            /*
+            BottomNavigationBar(
+              selectedItemColor: Colors.black,
+              unselectedItemColor: Colors.black, 
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Cameras'),
+                BottomNavigationBarItem(icon: Icon(Icons.login), label: 'History'),
+                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings')
+              ]
+            )
+            */
           ],
         ),
       ),
