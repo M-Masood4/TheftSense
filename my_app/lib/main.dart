@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'home.dart';
+import 'cameras.dart';
+import 'history.dart';
+import 'settings.dart';
 
 void main() {
   runApp(const MyApp());
@@ -60,36 +64,10 @@ class _MyHomePageState extends State<MyHomePage> {
   /// work well enough for you to start working on it.
   
   late final List<Widget> _pages = [
-    Center(child: Text('Home')),
-
-    //Center(child: Text('Cameras')),
-    ListView(
-      scrollDirection: Axis.vertical,
-      
-      children: [
-        for (int i = 0; i < 5; i++) 
-          Padding(
-            padding:EdgeInsetsGeometry.all(10), 
-            child: Container(
-              color:Colors.grey,
-              height: 75,
-              child: Row(
-                children: [
-                  Icon(Icons.gamepad),
-                  SizedBox(width:20),
-                  Text('Camera $i'),
-                  SizedBox(width: 50),
-                  Text('Camera Details')
-                ]
-              )
-            )
-          )
-      ]
-    ),
-
-    Center(child: Text('History')),
-
-    Center(child: Text('Settings')),
+    HomePage(),
+    CameraPage(),
+    HistoryPage(),
+    SettingsPage(),
   ];
 
   Widget _loginPage() {
