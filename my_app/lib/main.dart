@@ -67,9 +67,23 @@ class _MyHomePageState extends State<MyHomePage> {
       scrollDirection: Axis.vertical,
       
       children: [
-        for (int i = 0; i < 10; i++) 
-          Padding(padding:EdgeInsetsGeometry.all(20), child: Container(height:100, color: Colors.blue))
-        
+        for (int i = 0; i < 5; i++) 
+          Padding(
+            padding:EdgeInsetsGeometry.all(10), 
+            child: Container(
+              color:Colors.grey,
+              height: 75,
+              child: Row(
+                children: [
+                  Icon(Icons.gamepad),
+                  SizedBox(width:20),
+                  Text('Camera $i'),
+                  SizedBox(width: 50),
+                  Text('Camera Details')
+                ]
+              )
+            )
+          )
       ]
     ),
 
