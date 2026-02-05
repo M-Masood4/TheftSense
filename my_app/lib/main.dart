@@ -3,6 +3,7 @@ import 'home.dart';
 import 'cameras.dart';
 import 'history.dart';
 import 'settings.dart';
+import 'landing.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,8 +22,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 40, 141, 209)),
       ),
-      home: const MyHomePage(
-        title: 'Shoplifting Detection System App',
+      home: const LandingPage(
+        // title: 'Shoplifting Detection System App',
       )
     );
   }
@@ -47,25 +48,25 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String message = 'You Are Logged Out';
+  // String message = 'You Are Logged Out';
   int _selectedIndex = 0;
-  bool _userLoggedIn = false;
+  // bool _userLoggedIn = false;
 
   /// The _logIn() function logs the user in, for now it just opens
   /// the main app and displays the bottom navigation bar,
-  void _logIn() {
-    setState(() { 
-      message = 'You Are Logged In';
-      _userLoggedIn = true;
-    });
-  }
+  // void _logIn() {
+  //   setState(() { 
+  //     message = 'You Are Logged In';
+  //     _userLoggedIn = true;
+  //   });
+  // }
 
-  void _logOut() {
-    setState(() { 
-      message = 'You Are Logged Out'; 
-      _userLoggedIn = false;
-    });
-  }
+  // void _logOut() {
+  //   setState(() { 
+  //     message = 'You Are Logged Out'; 
+  //     _userLoggedIn = false;
+  //   });
+  // }
 
   /// This is the list of pages. Right now each page is just a
   /// 'Center' object that displays the page name, but it should
@@ -78,42 +79,42 @@ class _MyHomePageState extends State<MyHomePage> {
     SettingsPage(),
   ];
 
-  Widget _loginPage() {
-    return Center(
-      //mainAxisAlignment: .center,
-      child: Column(
-        mainAxisAlignment: .center,
-        children: [
-          const Text('Welcome'),
+  // Widget _loginPage() {
+  //   return Center(
+  //     //mainAxisAlignment: .center,
+  //     child: Column(
+  //       mainAxisAlignment: .center,
+  //       children: [
+  //         const Text('Welcome'),
          
-          Text(message),
+  //         Text(message),
             
-          SizedBox(
-            width:80,
-            height:20,
-            child: FloatingActionButton(
-              onPressed: _logIn,
-              tooltip: 'Log In',
-              child: const Text('Log In'),
-              ),
-            ),
-          /*
-          const SizedBox(height: 20),
+  //         SizedBox(
+  //           width:80,
+  //           height:20,
+  //           child: FloatingActionButton(
+  //             onPressed: _logIn,
+  //             tooltip: 'Log In',
+  //             child: const Text('Log In'),
+  //             ),
+  //           ),
+  //         /*
+  //         const SizedBox(height: 20),
 
-          SizedBox(
-            width:80,
-            height:20,
-            child: FloatingActionButton(
-              onPressed: _logOut,
-              tooltip: 'Log Out',
-              child: const Text('Log Out'),
-            ),
-          ),
-          */
-        ]
-      )
-    );
-  }
+  //         SizedBox(
+  //           width:80,
+  //           height:20,
+  //           child: FloatingActionButton(
+  //             onPressed: _logOut,
+  //             tooltip: 'Log Out',
+  //             child: const Text('Log Out'),
+  //           ),
+  //         ),
+  //         */
+  //       ]
+  //     )
+  //   );
+  // }
 
   void _changePage(int page_index) {
     setState(() { _selectedIndex = page_index; });
@@ -131,8 +132,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
 
       // if the user is logged in, display the home page, else display login page
-      body: _userLoggedIn ? IndexedStack(index: _selectedIndex, children: _pages,) : _loginPage(),
-
+      // body: _userLoggedIn ? IndexedStack(index: _selectedIndex, children: _pages,) : _loginPage(),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       /**
        * This is the bottom navigation bar (child of Scaffold).
        * Each icon on the bar is a child of the bar.
@@ -140,19 +141,19 @@ class _MyHomePageState extends State<MyHomePage> {
        * onTap: executes the function when an icon is pressed.
        * currentIndex: index of the page that is selected (must be 0 < x < items.length)
        */
-      bottomNavigationBar: _userLoggedIn ? BottomNavigationBar(
-              selectedItemColor: Colors.black,
-              unselectedItemColor: Colors.black,
-              type: BottomNavigationBarType.fixed,
-              onTap: _changePage,
-              currentIndex: _selectedIndex,
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Cameras'),
-                BottomNavigationBarItem(icon: Icon(Icons.book), label: 'History'),
-                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-              ]
-            ) : null,
+      bottomNavigationBar: BottomNavigationBar(
+          selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.black,
+        type: BottomNavigationBarType.fixed,
+        onTap: _changePage,
+        currentIndex: _selectedIndex,
+        items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Cameras'),
+            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'History'),
+            BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+  ]
+),
     );
   }
 }
