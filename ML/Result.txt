@@ -25,3 +25,4 @@ Here, our model gets upto ~69% precision, this means that there are 31% false al
 were missed. 
 
 F1 Score is 68%, means model is decent in catching shoplifting as well as not raising false positives. Although this can be improved. 
+This is the main focus of our model, improving the F1 score.
