@@ -28,7 +28,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
+/// VERY IMPORTANT: 
+/// If your page is stateful (ie: new elements are
+/// going to be added dynamically, such as adding a new camera). 
+/// You need to:
+/// 1) take the 'MyHomePage' class below and
+///    replace 'MyHomePage' with the name of your page.
+/// 2) then you can start working in the '_MyHomePageState' class.
+/// otherwise, flutter will complain and require to mark elements
+/// as final.
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -89,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: const Text('Log In'),
               ),
             ),
-
+          /*
           const SizedBox(height: 20),
 
           SizedBox(
@@ -101,6 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: const Text('Log Out'),
             ),
           ),
+          */
         ]
       )
     );
