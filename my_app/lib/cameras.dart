@@ -11,20 +11,22 @@ class CameraPage extends StatefulWidget {
 
 class _CameraPageState extends State<CameraPage> {
 
-  List<Widget> listChildren = [];
   List<String> cameraNames = [];
+  List<String> cameraDetails = [];
+
+  bool userAddingCamera = false;
 
   ListView createListView() {
     //createButton();
     return ListView(
       scrollDirection: Axis.vertical,
       children: [
-        for (int i=0; i<cameraNames.length; i++) newCameraTab(cameraNames[i]),
+        for (int i=0; i<cameraNames.length; i++) newCameraTab(cameraNames[i], cameraDetails[i]),
         Padding(
           padding:EdgeInsets.all(50), 
           child: ElevatedButton(
             style: ButtonStyle(backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent)),
-            onPressed: AddCamera,
+            onPressed: switchInstance,
             child: Text('+ Add Camera'),
           )
         )
@@ -32,7 +34,7 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
-  Padding newCameraTab(String cameraName) {
+  Padding newCameraTab(String cameraName, String cameraDetails) {
     return Padding(
       padding:EdgeInsets.all(10), 
       child: Container(
@@ -48,37 +50,79 @@ class _CameraPageState extends State<CameraPage> {
             SizedBox(width:25),
             Text(cameraName),
             SizedBox(width: 50),
-            Text('Camera Details')
+            Text(cameraDetails)
           ]
         )
       )
     );
   }
 
-  void AddCamera() {
-    setState(() {
-      int num = cameraNames.length;
-      cameraNames.add('Camera $num');
-    });
+  void switchInstance() {
+    setState(() {userAddingCamera=!userAddingCamera;});
+    return;
   }
 
-  void createButton() {
-    if (listChildren.isEmpty) {
-      print('listChildren is empty');
-      Padding button = Padding(
-        padding:EdgeInsets.all(50), 
-        child: ElevatedButton(
-          style: ButtonStyle(backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent)),
-          onPressed: AddCamera,
-          child: Text('+ Add Camera'),
+  void addCamera(String cameraName, String cameraDetail) {
+    if (cameraName == '' || cameraDetails == '') {return;}
+    setState(() {
+      cameraNames.add(cameraName);
+      cameraDetails.add(cameraDetail);
+      switchInstance();
+    });
+  }
+  
+  ListView addNewCameraTab() {
+    final myControllerA = TextEditingController();
+    final myControllerB = TextEditingController();
+
+    return ListView(
+      scrollDirection: Axis.vertical,
+      children: [
+        Padding(
+          padding:EdgeInsets.all(20),
+          child:
+            TextField(
+              controller: myControllerA,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Enter camera name (e.g. Freezer Aisle Camera)',
+              )
+            ),
+        ),
+        Padding(
+          padding:EdgeInsets.all(20),
+          child: TextField(
+            controller: myControllerB,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Enter Camera Details (e.g. Active From 09:00 - 17:00)',
+            )
+          ),
+        ),
+        Padding(
+          padding:EdgeInsets.all(25), 
+          child: FloatingActionButton(
+            onPressed: () {addCamera(myControllerA.text, myControllerB.text);},
+            child: Text('Finish Camera Setup'),
+          )
+        ),
+        Padding(
+          padding:EdgeInsets.all(25), 
+          child: FloatingActionButton(
+            onPressed: () {switchInstance();},
+            child: Text('Cancel'),
+          )
         )
-      );
-      listChildren.add(button);
-    }
+      ]
+    );
   }
   
   @override
   Widget build(BuildContext context) {
-    return createListView();
+    if (userAddingCamera) {
+      return addNewCameraTab();
+    } else {
+      return createListView();
+    }
   }
 }
