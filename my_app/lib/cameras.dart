@@ -56,7 +56,8 @@ class _CameraPageState extends State<CameraPage> {
             onPressed: switchInstance,
             child: Text('+ Add Camera'),
           )
-        )
+        ),
+        if (cameraNames.isEmpty) Center(child:Text('You have no cameras setup, why not start now?')),
       ]
     );
   }
@@ -227,7 +228,10 @@ class _CameraPageState extends State<CameraPage> {
       scrollDirection: Axis.vertical,
       children: [
         //Page Header
-        Text('Camera Setup'),
+        Padding(
+          padding:EdgeInsetsGeometry.fromLTRB(10,0,0,0),
+          child: Text('Camera Setup'),
+        ),
 
         //Input Field A
         Padding(
@@ -255,14 +259,20 @@ class _CameraPageState extends State<CameraPage> {
         ),
 
         //Error Message
-        Text(errorMsg, style:TextStyle(color:Colors.red)),
+        Padding(
+          padding:EdgeInsetsGeometry.fromLTRB(10,0,0,0),
+          child: Text(errorMsg, style:TextStyle(color:Colors.red)),
+        ),
         
+        //provide details on currently selected camera
+        Center(child:Text(cameras[cameraSelectorIndex].name.toString())),
+
         //something, list of active cams
         _buildUI(),
 
         //Button A
         Padding(
-          padding:EdgeInsets.all(25), 
+          padding:EdgeInsets.all(15), 
           child: FloatingActionButton(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
@@ -273,7 +283,7 @@ class _CameraPageState extends State<CameraPage> {
         
         //Button B
         Padding(
-          padding:EdgeInsets.all(25), 
+          padding:EdgeInsets.all(15), 
           child: FloatingActionButton(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
