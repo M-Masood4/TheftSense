@@ -83,8 +83,8 @@ class _CameraPageState extends State<CameraPage> {
         }, 
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: const Color.fromARGB(255, 203, 196, 196),
+            borderRadius: BorderRadius.circular(1),
+            color: const Color.fromARGB(255, 97, 95, 95),
           ),
           height: 75,
           child: Row(
