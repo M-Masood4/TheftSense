@@ -28,6 +28,7 @@ class _CameraPageState extends State<CameraPage> {
   //List<CameraDescription> _cameras = [];
   //List<CameraDescription> cameras = [];
   CameraController? cameraController;
+  int cameraSelectorIndex = 0;
   
   SizedBox testA = SizedBox(
         height: 250,
@@ -42,7 +43,7 @@ class _CameraPageState extends State<CameraPage> {
   String storePrevCamName = '';
   String storePrevCamDetails = '';
 
-  //This is the list of cameras
+  //This is the list of camera tabs
   ListView createListView() {
     return ListView(
       scrollDirection: Axis.vertical,
@@ -114,7 +115,7 @@ class _CameraPageState extends State<CameraPage> {
       setState(() {
         cameras = priv_cameras;
         cameraController = CameraController(
-          priv_cameras.first, 
+          priv_cameras[cameraSelectorIndex], 
           ResolutionPreset.low,
           enableAudio: false,
         );
@@ -124,31 +125,68 @@ class _CameraPageState extends State<CameraPage> {
       });
     }
   }
+
+  void changeCam(int i) {
+    if (cameraSelectorIndex+i >= cameras.length) {
+      cameraSelectorIndex = 0;
+    } else if (cameraSelectorIndex+i < 0) {
+      cameraSelectorIndex = cameras.length - 1;
+    } else {
+      cameraSelectorIndex += i;
+    }
+
+    debugPrint(cameraSelectorIndex.toString());
+
+    switchInstance();
+    Future.delayed(Duration(seconds: 1), () {switchInstance();});
+  }
   
+  /// _buildUI() returns a loading thingy if it cannot find
+  /// any cameras, otherwise it will automatically load
+  /// the first camera that the system is connected to, plus
+  /// buttons to switch cameras.
   Widget _buildUI() {
     if (cameraController == null || cameraController?.value.isInitialized == false) {
       return const Center(child: CircularProgressIndicator());
     } 
     /*
-    return SafeArea(
-      child: SizedBox.expand(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              height:100,
-              width:100,
-              child:CameraPreview(cameraController!),
-            )
-          ],
-        )
+    return Padding(
+      padding: EdgeInsetsGeometry.fromLTRB(50, 5, 50, 5),
+      child:
+      AspectRatio(
+        aspectRatio: cameraController!.value.aspectRatio,
+        child: CameraPreview(cameraController!),
       )
     );
     */
-    return AspectRatio(
-      aspectRatio: cameraController!.value.aspectRatio,
-      child: CameraPreview(cameraController!),
+    return Padding(
+      padding: EdgeInsetsGeometry.fromLTRB(50, 5, 50, 5),
+      child: 
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: Icon(Icons.chevron_left), 
+              color: Colors.black,
+              onPressed: () {changeCam(-1);},
+            ),
+        
+            Expanded(
+              child:
+                AspectRatio(
+                  aspectRatio: cameraController!.value.aspectRatio,
+                  child: CameraPreview(cameraController!),
+                )
+            ),
+
+            IconButton(
+              icon: Icon(Icons.chevron_right), 
+              color: Colors.black, 
+              onPressed: () {changeCam(1);},
+            ),
+          ]
+        )
+        
     );
   }
 
@@ -184,8 +222,6 @@ class _CameraPageState extends State<CameraPage> {
     final myControllerB = TextEditingController();
     if (storePrevCamName != '') myControllerA.text = storePrevCamName;
     if (storePrevCamDetails != '') myControllerB.text = storePrevCamDetails;
-
-    
 
     return ListView(
       scrollDirection: Axis.vertical,
@@ -223,7 +259,6 @@ class _CameraPageState extends State<CameraPage> {
         
         //something, list of active cams
         _buildUI(),
-        
 
         //Button A
         Padding(
