@@ -1,8 +1,10 @@
 export 'cameras.dart';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'main.dart';
+import 'dart:io';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({Key? key}) : super(key: key);
@@ -37,18 +39,21 @@ class _CameraPageState extends State<CameraPage> {
 
   List<String> cameraNames = [];
   List<String> cameraDetails = [];
+  List<XFile> thumbnails = [];
 
   bool userAddingCamera = false;
   String errorMsg = '';
   String storePrevCamName = '';
   String storePrevCamDetails = '';
 
-  //This is the list of camera tabs
+  /// createListView() is called by build() when the user is not
+  /// setting up a camera. It creates a list of all active camera
+  /// tabs and a button to begin setting up a new camera.
   ListView createListView() {
     return ListView(
       scrollDirection: Axis.vertical,
       children: [  
-        for (int i=0; i<cameraNames.length; i++) newCameraTab(cameraNames[i], cameraDetails[i]),
+        for (int i=0; i<cameraNames.length; i++) newCameraTab(cameraNames[i], cameraDetails[i], i),
         Padding(
           padding:EdgeInsets.all(50), 
           child: ElevatedButton(
@@ -62,7 +67,7 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
-  Padding newCameraTab(String cameraName, String cameraDetails) {
+  Padding newCameraTab(String cameraName, String cameraDetails, int thumbnailsIndex) {
     return Padding(
       padding:EdgeInsets.all(10), 
       child: Container(
@@ -74,7 +79,14 @@ class _CameraPageState extends State<CameraPage> {
         child: Row(
           children: [
             SizedBox(width:25),
-            Icon(Icons.camera_alt_outlined),
+            //Icon(Icons.camera_alt_outlined),
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: SizedBox(
+                height:200, 
+                child: Image.network(thumbnails[thumbnailsIndex].path),
+              ),
+            ),
             SizedBox(width:25),
             Text(cameraName),
             SizedBox(width: 50),
@@ -140,6 +152,7 @@ class _CameraPageState extends State<CameraPage> {
 
     switchInstance();
     Future.delayed(Duration(seconds: 1), () {switchInstance();});
+    debugPrint(thumbnails.length.toString());
   }
   
   /// _buildUI() returns a loading thingy if it cannot find
@@ -150,16 +163,7 @@ class _CameraPageState extends State<CameraPage> {
     if (cameraController == null || cameraController?.value.isInitialized == false) {
       return const Center(child: CircularProgressIndicator());
     } 
-    /*
-    return Padding(
-      padding: EdgeInsetsGeometry.fromLTRB(50, 5, 50, 5),
-      child:
-      AspectRatio(
-        aspectRatio: cameraController!.value.aspectRatio,
-        child: CameraPreview(cameraController!),
-      )
-    );
-    */
+    
     return Padding(
       padding: EdgeInsetsGeometry.fromLTRB(50, 5, 50, 5),
       child: 
@@ -193,7 +197,7 @@ class _CameraPageState extends State<CameraPage> {
 
   /// addCamera() is called by addNewCameraTab()
   /// when the user finishes camera setup. 
-  void addCamera(String cameraName, String cameraDetail) {
+  Future<void> addCamera(String cameraName, String cameraDetail) async {
     storePrevCamDetails = cameraDetail;
     storePrevCamName = cameraName;
 
@@ -212,8 +216,21 @@ class _CameraPageState extends State<CameraPage> {
 
       cameraNames.add(cameraName);
       cameraDetails.add(cameraDetail);
-      switchInstance();
+
+      //await addToThumbnails();
+      
+      //switchInstance();
     });
+    await addToThumbnails();
+    switchInstance();
+    
+  }
+
+  Future<void> addToThumbnails() async {
+    XFile file = await cameraController!.takePicture();
+    Future.delayed(Duration(milliseconds: 500));
+    setState(() {thumbnails.add(file);});
+    print(thumbnails);
   }
 
   /// This is the sub-page to add a new camera.
@@ -297,15 +314,6 @@ class _CameraPageState extends State<CameraPage> {
   
   @override
   Widget build(BuildContext context) {
-
-    if (true) {
-      testA = SizedBox(
-        height: 250,
-        child: Center(child: CircularProgressIndicator()),
-      );
-      print('waiting');
-    }
-    
     if (userAddingCamera) {
       return addNewCameraTab();
     } else {
