@@ -29,6 +29,7 @@ class _LandingPageState extends State<LandingPage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Shoplifting Detection System App'),
+        centerTitle: true,
       ),
       body: Center(
         child: Column(

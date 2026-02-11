@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'cameras.dart';
@@ -5,7 +6,12 @@ import 'history.dart';
 import 'settings.dart';
 import 'landing.dart';
 
+List<CameraDescription> priv_cameras = [];
+List<CameraDescription> cameras = [];
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  //priv_cameras = await availableCameras();
   runApp(const MyApp());
 }
 
@@ -18,13 +24,23 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Shoplifting Detection System App',
+      /// NOTE: this is overriding the settings
+      /// in landing.dart, if you want to change
+      /// the app's color scheme, remove 'theme'.
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 40, 141, 209)),
+        colorScheme: ColorScheme(
+          brightness: Brightness.dark,
+          primary: Colors.black,
+          onPrimary: Colors.white,
+          secondary: Colors.white,
+          onSecondary: Colors.black,
+          error: Colors.black,
+          onError: Colors.black,
+          surface: Colors.white,
+          onSurface: Colors.black,
+        )
       ),
-      home: const LandingPage(
-        // title: 'Shoplifting Detection System App',
-      )
+      home: const LandingPage()
     );
   }
 }
@@ -48,25 +64,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // String message = 'You Are Logged Out';
   int _selectedIndex = 0;
-  // bool _userLoggedIn = false;
-
-  /// The _logIn() function logs the user in, for now it just opens
-  /// the main app and displays the bottom navigation bar,
-  // void _logIn() {
-  //   setState(() { 
-  //     message = 'You Are Logged In';
-  //     _userLoggedIn = true;
-  //   });
-  // }
-
-  // void _logOut() {
-  //   setState(() { 
-  //     message = 'You Are Logged Out'; 
-  //     _userLoggedIn = false;
-  //   });
-  // }
 
   /// This is the list of pages. Right now each page is just a
   /// 'Center' object that displays the page name, but it should
@@ -78,43 +76,6 @@ class _MyHomePageState extends State<MyHomePage> {
     HistoryPage(),
     SettingsPage(),
   ];
-
-  // Widget _loginPage() {
-  //   return Center(
-  //     //mainAxisAlignment: .center,
-  //     child: Column(
-  //       mainAxisAlignment: .center,
-  //       children: [
-  //         const Text('Welcome'),
-         
-  //         Text(message),
-            
-  //         SizedBox(
-  //           width:80,
-  //           height:20,
-  //           child: FloatingActionButton(
-  //             onPressed: _logIn,
-  //             tooltip: 'Log In',
-  //             child: const Text('Log In'),
-  //             ),
-  //           ),
-  //         /*
-  //         const SizedBox(height: 20),
-
-  //         SizedBox(
-  //           width:80,
-  //           height:20,
-  //           child: FloatingActionButton(
-  //             onPressed: _logOut,
-  //             tooltip: 'Log Out',
-  //             child: const Text('Log Out'),
-  //           ),
-  //         ),
-  //         */
-  //       ]
-  //     )
-  //   );
-  // }
 
   void _changePage(int page_index) {
     setState(() { _selectedIndex = page_index; });
@@ -129,6 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        centerTitle: true,
       ),
 
       // if the user is logged in, display the home page, else display login page
