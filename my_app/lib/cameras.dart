@@ -4,13 +4,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'main.dart';
-import 'dart:io';
+//import 'dart:io';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({Key? key}) : super(key: key);
 
   @override
   State<CameraPage> createState() => _CameraPageState();
+}
+
+class Camera {
+  
 }
 
 class _CameraPageState extends State<CameraPage> {
@@ -40,8 +44,10 @@ class _CameraPageState extends State<CameraPage> {
   List<String> cameraNames = [];
   List<String> cameraDetails = [];
   List<XFile> thumbnails = [];
+  int pressToDelete = 0;
 
   bool userAddingCamera = false;
+  bool userViewingCamera = false;
   String errorMsg = '';
   String storePrevCamName = '';
   String storePrevCamDetails = '';
@@ -58,7 +64,7 @@ class _CameraPageState extends State<CameraPage> {
           padding:EdgeInsets.all(50), 
           child: ElevatedButton(
             style: ButtonStyle(backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent)),
-            onPressed: switchInstance,
+            onPressed: () {switchInstance();},
             child: Text('+ Add Camera'),
           )
         ),
@@ -69,41 +75,44 @@ class _CameraPageState extends State<CameraPage> {
 
   Padding newCameraTab(String cameraName, String cameraDetails, int thumbnailsIndex) {
     return Padding(
-      padding:EdgeInsets.all(10), 
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: const Color.fromARGB(255, 203, 196, 196),
-        ),
-        height: 75,
-        child: Row(
-          children: [
-            SizedBox(width:25),
-            //Icon(Icons.camera_alt_outlined),
-            Padding(
-              padding: EdgeInsets.all(10),
-              child: SizedBox(
-                height:200, 
-                child: Image.network(thumbnails[thumbnailsIndex].path),
+      padding:EdgeInsets.all(10),
+      child: FloatingActionButton(
+        onPressed: () {
+          print('$thumbnailsIndex');
+          switchInstance_viewCams(thumbnailsIndex); 
+        }, 
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: const Color.fromARGB(255, 203, 196, 196),
+          ),
+          height: 75,
+          child: Row(
+            children: [
+              SizedBox(width:25),
+              //Icon(Icons.camera_alt_outlined),
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: SizedBox(
+                  height:200, 
+                  child: Image.network(thumbnails[thumbnailsIndex].path),
+                ),
               ),
-            ),
-            SizedBox(width:25),
-            Text(cameraName),
-            SizedBox(width: 50),
-            Text(cameraDetails)
-          ]
+              SizedBox(width:25),
+              Text(cameraName),
+              SizedBox(width: 50),
+              Text(cameraDetails)
+            ]
+          )
         )
       )
     );
   }
 
   void switchInstance() async {
-
-    //priv_cameras = await availableCameras();
-
     if (!userAddingCamera) {
       try {
-        await _setupCameraController();
+        await _setupCameraController(0);
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -115,6 +124,22 @@ class _CameraPageState extends State<CameraPage> {
     return;
   }
 
+  void switchInstance_viewCams(int entryPoint) async {
+    cameraSelectorIndex = entryPoint;
+    if (!userViewingCamera) {
+      try {
+        await _setupCameraController(entryPoint);
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    } else { await _disposeCamera(); }
+
+    if (!mounted) return;
+     
+    setState(() {userViewingCamera=!userViewingCamera;});
+    return;
+  }
+
   Future<void> _disposeCamera() async {
     if (cameraController != null) {
       await cameraController!.dispose();
@@ -122,13 +147,13 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
   
-  Future<void> _setupCameraController() async {
+  Future<void> _setupCameraController(int entryPoint) async {
     priv_cameras = await availableCameras();
     if (priv_cameras.isNotEmpty) {
       setState(() {
         cameras = priv_cameras;
         cameraController = CameraController(
-          priv_cameras[cameraSelectorIndex], 
+          entryPoint == 0 ? priv_cameras[cameraSelectorIndex] : priv_cameras[entryPoint], 
           ResolutionPreset.low,
           enableAudio: false,
         );
@@ -191,7 +216,29 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ]
         )
-        
+    );
+  }
+
+  Widget _displayOneCamera() {
+    if (cameraController == null || cameraController?.value.isInitialized == false) {
+      return const Center(child: CircularProgressIndicator());
+    } 
+
+    return Padding(
+      padding: EdgeInsetsGeometry.fromLTRB(50, 5, 50, 5),
+      child: 
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child:
+                AspectRatio(
+                  aspectRatio: cameraController!.value.aspectRatio,
+                  child: CameraPreview(cameraController!),
+                )
+            ),
+          ]
+        )
     );
   }
 
@@ -312,13 +359,53 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
   
+  ListView viewingCameraTab() {
+    pressToDelete = 0;
+    return ListView(
+      scrollDirection: Axis.vertical,
+      children: [
+        _displayOneCamera(),
+        Center(child:Text(cameraNames[cameraSelectorIndex].toString())),
+        Center(child:Text(cameraDetails[cameraSelectorIndex].toString())),
+        Padding(
+          padding:EdgeInsets.all(15), 
+          child: FloatingActionButton(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            onPressed: () {switchInstance_viewCams(0); },
+            child: Text('Cancel'),
+          )
+        ),
+        Padding(
+          padding:EdgeInsets.all(15), 
+          child: FloatingActionButton(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.black,
+            onPressed: () { 
+              pressToDelete += 1;
+              if (pressToDelete >= 2) {
+                pressToDelete = 0;
+                cameraNames.removeAt(cameraSelectorIndex);
+                cameraDetails.removeAt(cameraSelectorIndex);
+                thumbnails.removeAt(cameraSelectorIndex);
+                switchInstance_viewCams(0);
+              }
+            },
+            child: Text('Delete Camera (Press Twice)'),
+          )
+        )
+      ]
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (userAddingCamera) {
       return addNewCameraTab();
+    } else if (userViewingCamera) {
+      return viewingCameraTab();
     } else {
       return createListView();
     }
-    
   }
 }
