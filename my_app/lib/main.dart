@@ -15,23 +15,24 @@ class MyApp extends StatelessWidget {
   /// This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Shoplifting Detection System App',
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 40, 141, 209)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 40, 141, 209),
+        ),
       ),
       home: const LandingPage(
         // title: 'Shoplifting Detection System App',
-      )
+      ),
     );
   }
 }
 
-/// VERY IMPORTANT: 
+/// VERY IMPORTANT:
 /// If your page is stateful (ie: new elements are
-/// going to be added dynamically, such as adding a new camera). 
+/// going to be added dynamically, such as adding a new camera).
 /// You need to:
 /// 1) take the 'MyHomePage' class below and
 ///    replace 'MyHomePage' with the name of your page.
@@ -55,15 +56,15 @@ class _MyHomePageState extends State<MyHomePage> {
   /// The _logIn() function logs the user in, for now it just opens
   /// the main app and displays the bottom navigation bar,
   // void _logIn() {
-  //   setState(() { 
+  //   setState(() {
   //     message = 'You Are Logged In';
   //     _userLoggedIn = true;
   //   });
   // }
 
   // void _logOut() {
-  //   setState(() { 
-  //     message = 'You Are Logged Out'; 
+  //   setState(() {
+  //     message = 'You Are Logged Out';
   //     _userLoggedIn = false;
   //   });
   // }
@@ -71,11 +72,11 @@ class _MyHomePageState extends State<MyHomePage> {
   /// This is the list of pages. Right now each page is just a
   /// 'Center' object that displays the page name, but it should
   /// work well enough for you to start working on it.
-  
+
   late final List<Widget> _pages = [
     HomePage(),
     CameraPage(),
-    HistoryPage(),
+    const HistoryPage(),
     SettingsPage(),
   ];
 
@@ -86,9 +87,9 @@ class _MyHomePageState extends State<MyHomePage> {
   //       mainAxisAlignment: .center,
   //       children: [
   //         const Text('Welcome'),
-         
+
   //         Text(message),
-            
+
   //         SizedBox(
   //           width:80,
   //           height:20,
@@ -117,7 +118,9 @@ class _MyHomePageState extends State<MyHomePage> {
   // }
 
   void _changePage(int page_index) {
-    setState(() { _selectedIndex = page_index; });
+    setState(() {
+      _selectedIndex = page_index;
+    });
   }
 
   /// The build() function is called when runApp() is executed,
@@ -125,7 +128,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
@@ -142,18 +144,21 @@ class _MyHomePageState extends State<MyHomePage> {
        * currentIndex: index of the page that is selected (must be 0 < x < items.length)
        */
       bottomNavigationBar: BottomNavigationBar(
-          selectedItemColor: Colors.black,
+        selectedItemColor: Colors.black,
         unselectedItemColor: Colors.black,
         type: BottomNavigationBarType.fixed,
         onTap: _changePage,
         currentIndex: _selectedIndex,
         items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Cameras'),
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'History'),
-            BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-  ]
-),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Cameras'),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'History'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+      ),
     );
   }
 }

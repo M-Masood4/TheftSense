@@ -2,9 +2,545 @@ export 'history.dart';
 
 import 'package:flutter/material.dart';
 
-class HistoryPage extends StatelessWidget {
+/// History timeline page for incidents.
+///
+/// - Shows a color-coded, vertical timeline of incidents.
+/// - Supports filtering by severity and a detail sheet per item.
+/// - Uses mock data that can be replaced with API results.
+enum IncidentSeverity { low, medium, high, critical }
+
+class Incident {
+  final String id;
+
+  /// When the incident occurred.
+  final DateTime timestamp;
+  final String cameraName;
+  final IncidentSeverity severity;
+  final String description;
+
+  /// True when staff has reviewed the incident.
+  final bool reviewed;
+
+  Incident({
+    required this.id,
+    required this.timestamp,
+    required this.cameraName,
+    required this.severity,
+    required this.description,
+    this.reviewed = false,
+  });
+
+  /// UI color for severity badges and timeline dots.
+  Color get severityColor {
+    switch (severity) {
+      case IncidentSeverity.low:
+        return Colors.green;
+      case IncidentSeverity.medium:
+        return Colors.orange;
+      case IncidentSeverity.high:
+        return Colors.deepOrange;
+      case IncidentSeverity.critical:
+        return Colors.red;
+    }
+  }
+
+  /// Human-friendly severity label.
+  String get severityLabel {
+    switch (severity) {
+      case IncidentSeverity.low:
+        return 'Low';
+      case IncidentSeverity.medium:
+        return 'Medium';
+      case IncidentSeverity.high:
+        return 'High';
+      case IncidentSeverity.critical:
+        return 'Critical';
+    }
+  }
+}
+
+class HistoryPage extends StatefulWidget {
+  const HistoryPage({Key? key}) : super(key: key);
+
+  @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  // Mock data - replace with actual API calls later.
+  final List<Incident> _incidents = [
+    Incident(
+      id: '001',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
+      cameraName: 'Entrance Camera',
+      severity: IncidentSeverity.critical,
+      description: 'Suspected concealment detected near checkout area',
+      reviewed: false,
+    ),
+    Incident(
+      id: '002',
+      timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
+      cameraName: 'Aisle 3 Camera',
+      severity: IncidentSeverity.high,
+      description: 'Unusual behavior pattern detected',
+      reviewed: true,
+    ),
+    Incident(
+      id: '003',
+      timestamp: DateTime.now().subtract(const Duration(hours: 3)),
+      cameraName: 'Electronics Section',
+      severity: IncidentSeverity.medium,
+      description: 'Person lingering near high-value items',
+      reviewed: true,
+    ),
+    Incident(
+      id: '004',
+      timestamp: DateTime.now().subtract(const Duration(hours: 5, minutes: 45)),
+      cameraName: 'Back Storage',
+      severity: IncidentSeverity.low,
+      description: 'Motion detected after hours - staff confirmed',
+      reviewed: true,
+    ),
+    Incident(
+      id: '005',
+      timestamp: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
+      cameraName: 'Freezer Aisle',
+      severity: IncidentSeverity.high,
+      description: 'Group behavior flagged as suspicious',
+      reviewed: false,
+    ),
+    Incident(
+      id: '006',
+      timestamp: DateTime.now().subtract(const Duration(days: 1, hours: 8)),
+      cameraName: 'Entrance Camera',
+      severity: IncidentSeverity.critical,
+      description: 'Confirmed shoplifting incident',
+      reviewed: true,
+    ),
+  ];
+
+  IncidentSeverity? _filterSeverity;
+
+  /// Returns incidents filtered by the selected severity.
+  List<Incident> get filteredIncidents {
+    if (_filterSeverity == null) return _incidents;
+    return _incidents.where((i) => i.severity == _filterSeverity).toList();
+  }
+
+  /// Formats a timestamp as a short relative time label.
+  String _formatTimestamp(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes} min ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h ago';
+    } else {
+      return '${diff.inDays}d ago';
+    }
+  }
+
+  /// Formats a timestamp into a full date/time string.
+  String _formatFullDate(DateTime dt) {
+    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('History'));
+    return Column(
+      children: [
+        // Filter bar
+        Container(
+          padding: const EdgeInsets.all(12),
+          color: Colors.grey[100],
+          child: Row(
+            children: [
+              const Text(
+                'Filter: ',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 8),
+              _buildFilterChip('All', null),
+              _buildFilterChip('Critical', IncidentSeverity.critical),
+              _buildFilterChip('High', IncidentSeverity.high),
+              _buildFilterChip('Medium', IncidentSeverity.medium),
+              _buildFilterChip('Low', IncidentSeverity.low),
+            ],
+          ),
+        ),
+        // Incident count summary
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${filteredIncidents.length} incidents',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+              Text(
+                '${_incidents.where((i) => !i.reviewed).length} unreviewed',
+                style: const TextStyle(fontSize: 14, color: Colors.red),
+              ),
+            ],
+          ),
+        ),
+        // Timeline list
+        Expanded(
+          child: filteredIncidents.isEmpty
+              ? const Center(child: Text('No incidents found'))
+              : ListView.builder(
+                  itemCount: filteredIncidents.length,
+                  itemBuilder: (context, index) {
+                    return _buildTimelineItem(filteredIncidents[index], index);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  /// Filter chip for a specific severity level.
+  Widget _buildFilterChip(String label, IncidentSeverity? severity) {
+    final isSelected = _filterSeverity == severity;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: FilterChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isSelected ? Colors.white : Colors.black87,
+          ),
+        ),
+        selected: isSelected,
+        selectedColor: severity?.index != null
+            ? [
+                Colors.green,
+                Colors.orange,
+                Colors.deepOrange,
+                Colors.red,
+              ][severity!.index]
+            : Colors.blue,
+        backgroundColor: Colors.white,
+        onSelected: (selected) {
+          setState(() {
+            _filterSeverity = selected ? severity : null;
+          });
+        },
+      ),
+    );
+  }
+
+  /// Builds a single timeline row with dot, line, and incident card.
+  Widget _buildTimelineItem(Incident incident, int index) {
+    return InkWell(
+      onTap: () => _showIncidentDetails(incident),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Timeline line and dot
+              SizedBox(
+                width: 40,
+                child: Column(
+                  children: [
+                    // Top line (hidden for first item)
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        color: index == 0
+                            ? Colors.transparent
+                            : Colors.grey[300],
+                      ),
+                    ),
+                    // Dot
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: incident.severityColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: incident.severityColor.withOpacity(0.4),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Bottom line (hidden for last item)
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        color: index == filteredIncidents.length - 1
+                            ? Colors.transparent
+                            : Colors.grey[300],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Incident card
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: incident.reviewed
+                          ? Colors.grey[300]!
+                          : incident.severityColor,
+                      width: incident.reviewed ? 1 : 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Severity badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: incident.severityColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              incident.severityLabel,
+                              style: TextStyle(
+                                color: incident.severityColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          // Timestamp
+                          Text(
+                            _formatTimestamp(incident.timestamp),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Camera name
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.videocam,
+                            size: 16,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            incident.cameraName,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          if (!incident.reviewed) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'NEW',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Description
+                      Text(
+                        incident.description,
+                        style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Bottom sheet for full incident details and actions.
+  void _showIncidentDetails(Incident incident) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle bar
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: incident.severityColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.warning_amber_rounded,
+                    color: incident.severityColor,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Incident #${incident.id}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        incident.severityLabel + ' Severity',
+                        style: TextStyle(
+                          color: incident.severityColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Details
+            _buildDetailRow(Icons.videocam, 'Camera', incident.cameraName),
+            _buildDetailRow(
+              Icons.access_time,
+              'Time',
+              _formatFullDate(incident.timestamp),
+            ),
+            _buildDetailRow(
+              Icons.description,
+              'Description',
+              incident.description,
+            ),
+            _buildDetailRow(
+              Icons.check_circle,
+              'Status',
+              incident.reviewed ? 'Reviewed' : 'Pending Review',
+            ),
+            const SizedBox(height: 24),
+            // Action buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.play_circle_outline),
+                    label: const Text('View Footage'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.check),
+                    label: const Text('Mark Reviewed'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: incident.severityColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Labeled value row used inside the detail sheet.
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
