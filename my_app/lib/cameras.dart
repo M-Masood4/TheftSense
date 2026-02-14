@@ -31,7 +31,10 @@ class _CameraPageState extends State<CameraPage> {
 
   CameraController? cameraController;
   int cameraSelectorIndex = 0;
-  
+  //start: debug vars
+  int attempt = 6;
+  bool app_fresh_start = true;
+  //end: debug var
   SizedBox testA = SizedBox(
         height: 250,
         child: Center(child: CircularProgressIndicator()),
@@ -114,16 +117,17 @@ class _CameraPageState extends State<CameraPage> {
   /// fetch all camera information before creating list
   Future<void> getDbData() async {
     final factory = getIdbFactory();
-
-    final db = await factory!.open('setup_cameras', version: 2);
+    print('called getDbData');
+    final db = await factory!.open('setup_cameras', version: attempt);
 
     final txn = db.transaction('setup_cameras', idbModeReadOnly);
     final store = txn.objectStore('setup_cameras');
 
     final items = await store.getAll();
 
-    await txn.completed;
+    //await txn.completed;
 
+    //setState(() {
     cameraNames = [];
     cameraDetails = [];
     thumbnails = [];
@@ -134,6 +138,13 @@ class _CameraPageState extends State<CameraPage> {
       cameraDetails.add(map['camDetails']);
       thumbnails.add(XFile.fromData(map['thumbnail']));
     }
+    //});
+    
+    print('names $cameraNames');
+    print('dets $cameraDetails');
+    print('thumbs $thumbnails');
+
+    await txn.completed;
   }
 
   /// switch sub-pages between 'cameras' and the
@@ -361,12 +372,20 @@ class _CameraPageState extends State<CameraPage> {
   /// python3 -m http.server 8080
   Future<void> _db(String db_camName, String db_camDetails, XFile db_thumbnail) async {
     Uint8List bytes = await db_thumbnail.readAsBytes();
+
+    if (app_fresh_start) { 
+      cameraNames = [];
+      cameraDetails = [];
+      thumbnails = [];
+      await getIdbFactory()!.deleteDatabase('setup_cameras');
+      app_fresh_start = false;
+    }
     
     final factory = getIdbFactory(); // for flutter web apps
 
     final db = await factory!.open(
       'setup_cameras',
-      version: 2,
+      version: attempt,
       onUpgradeNeeded: (VersionChangeEvent e) {
         final db = e.database;
 
@@ -383,7 +402,7 @@ class _CameraPageState extends State<CameraPage> {
         }
       },
     );
-
+    //print('debug: ${db.objectStoreNames}');
     final txn = db.transaction('setup_cameras', idbModeReadWrite);
     final store = txn.objectStore('setup_cameras');
 
@@ -393,18 +412,21 @@ class _CameraPageState extends State<CameraPage> {
       'thumbnail': bytes,  
     });
     
-    final items = await store.getAll();
+    //final items = await store.getAll();
 
     await txn.completed;
 
-    print(items);
+    //print(items);
+    //print('debug: ${db.objectStoreNames}');
+
+    return;
   }
 
   Future<XFile> addToThumbnails() async {
     XFile file = await cameraController!.takePicture();
     Future.delayed(Duration(milliseconds: 500));
     setState(() {thumbnails.add(file);});
-    print(thumbnails);
+    //print(thumbnails);
     return file;
   }
 
