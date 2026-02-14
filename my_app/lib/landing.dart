@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
 import 'pages/registration_page.dart';
 import 'pages/login_page.dart';
 
@@ -21,14 +20,9 @@ class _LandingPageState extends State<LandingPage> {
   }
 
   void _logIn() {
-    setState(() {
-      message = 'You Are Logged In';
-    });
-
-    // Navigate to the main app
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MyHomePage(title: 'TheftSense\u2122')),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 

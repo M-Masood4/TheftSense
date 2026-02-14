@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'forgot_password_page.dart';
 import 'two_fa_page.dart';
@@ -18,6 +19,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   bool _passwordObscured = true;
   bool _confirmPasswordObscured = true;
+  bool _isSubmitting = false;
+  DateTime? _cooldownUntil;
+
+  static const Duration _cooldownDuration = Duration(seconds: 30);
 
   @override
   void dispose() {
@@ -40,6 +45,74 @@ class _RegistrationPageState extends State<RegistrationPage> {
       context,
       MaterialPageRoute(builder: (context) => const TwoFaPage()),
     );
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _register() async {
+    final email = _emailController.text.trim();
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+    final now = DateTime.now();
+
+    if (_cooldownUntil != null && now.isBefore(_cooldownUntil!)) {
+      final remaining = _cooldownUntil!.difference(now).inSeconds;
+      _showMessage('Please wait $remaining seconds before trying again.');
+      return;
+    }
+
+    if (email.isEmpty || username.isEmpty || password.isEmpty) {
+      _showMessage('Please fill in all fields.');
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showMessage('Passwords do not match.');
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final response = await Supabase.instance.client.auth.signUp(
+        email: email,
+        password: password,
+        data: {
+          'username': username,
+        },
+      );
+
+      _showMessage(
+        response.user == null
+            ? 'Check your email to confirm your account.'
+            : 'Account created successfully.',
+      );
+    } on AuthException catch (error) {
+      final statusCode = error.statusCode ?? 0;
+      if (statusCode == 429) {
+        _cooldownUntil = DateTime.now().add(_cooldownDuration);
+        _showMessage(
+          'Too many requests. Please wait a bit before trying again.',
+        );
+      } else {
+        _showMessage(error.message);
+      }
+    } catch (error) {
+      _showMessage('Registration failed. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   Widget _buildLabeledField({
@@ -167,8 +240,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: _goToTwoFa,
-              child: const Text('Sign Up'),
+              onPressed: _isSubmitting ? null : _register,
+              child: _isSubmitting
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Sign Up'),
             ),
           ],
         ),
