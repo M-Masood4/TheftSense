@@ -4,7 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'main.dart';
-//import 'dart:io';
+//import 'package:file_picker/file_picker.dart';
+//import 'package:file_saver/file_saver.dart';
+import 'package:idb_shim/idb_browser.dart';
+import 'package:idb_shim/idb.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({Key? key}) : super(key: key);
@@ -13,16 +16,11 @@ class CameraPage extends StatefulWidget {
   State<CameraPage> createState() => _CameraPageState();
 }
 
-class Camera {
-  
-}
-
 class _CameraPageState extends State<CameraPage> {
 
   @override
   void initState() {
     super.initState();
-    //_setupCameraController();
   }
 
   @override
@@ -31,8 +29,6 @@ class _CameraPageState extends State<CameraPage> {
     super.dispose();
   }
 
-  //List<CameraDescription> _cameras = [];
-  //List<CameraDescription> cameras = [];
   CameraController? cameraController;
   int cameraSelectorIndex = 0;
   
@@ -56,10 +52,14 @@ class _CameraPageState extends State<CameraPage> {
   /// setting up a camera. It creates a list of all active camera
   /// tabs and a button to begin setting up a new camera.
   ListView createListView() {
+    //await getDbData();
+
     return ListView(
       scrollDirection: Axis.vertical,
-      children: [  
+      children: [ 
+
         for (int i=0; i<cameraNames.length; i++) newCameraTab(cameraNames[i], cameraDetails[i], i),
+        
         Padding(
           padding:EdgeInsets.all(50), 
           child: ElevatedButton(
@@ -73,6 +73,8 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
+  /// called by createListView(), creates a 'tab' for
+  /// each camera that is currently registered.
   Padding newCameraTab(String cameraName, String cameraDetails, int thumbnailsIndex) {
     return Padding(
       padding:EdgeInsets.all(10),
@@ -109,6 +111,33 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
+  /// fetch all camera information before creating list
+  Future<void> getDbData() async {
+    final factory = getIdbFactory();
+
+    final db = await factory!.open('setup_cameras', version: 2);
+
+    final txn = db.transaction('setup_cameras', idbModeReadOnly);
+    final store = txn.objectStore('setup_cameras');
+
+    final items = await store.getAll();
+
+    await txn.completed;
+
+    cameraNames = [];
+    cameraDetails = [];
+    thumbnails = [];
+
+    for (int i=0; i<items.length; i++) {
+      final map = items[i] as Map;
+      cameraNames.add(map['camName']);
+      cameraDetails.add(map['camDetails']);
+      thumbnails.add(XFile.fromData(map['thumbnail']));
+    }
+  }
+
+  /// switch sub-pages between 'cameras' and the
+  /// sub-page to setup a camera.
   void switchInstance() async {
     if (!userAddingCamera) {
       try {
@@ -124,6 +153,8 @@ class _CameraPageState extends State<CameraPage> {
     return;
   }
 
+  /// switch sub-pages between 'cameras' and the
+  /// sub-page to view active cameras
   void switchInstance_viewCams(int entryPoint) async {
     cameraSelectorIndex = entryPoint;
     if (!userViewingCamera) {
@@ -140,6 +171,9 @@ class _CameraPageState extends State<CameraPage> {
     return;
   }
 
+  /// called by either switchInstance() function, 
+  /// handles disposal of cameraController after 
+  /// use to prevent errors.
   Future<void> _disposeCamera() async {
     if (cameraController != null) {
       await cameraController!.dispose();
@@ -147,6 +181,8 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
   
+  /// sets up a cameraController so the connected
+  /// camera can be viewed through the app
   Future<void> _setupCameraController(int entryPoint) async {
     priv_cameras = await availableCameras();
     if (priv_cameras.isNotEmpty) {
@@ -164,6 +200,9 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
+  /// changes the cameraSelectorIndex to switch the
+  /// camera being currently viewed, used in the
+  /// sub-page to setup cameras.
   void changeCam(int i) {
     if (cameraSelectorIndex+i >= cameras.length) {
       cameraSelectorIndex = 0;
@@ -261,23 +300,112 @@ class _CameraPageState extends State<CameraPage> {
       storePrevCamName = '';
       errorMsg = '';
 
-      cameraNames.add(cameraName);
-      cameraDetails.add(cameraDetail);
-
-      //await addToThumbnails();
-      
-      //switchInstance();
+      //cameraNames.add(cameraName);
+      //cameraDetails.add(cameraDetail);
     });
-    await addToThumbnails();
+
+    //await _saveFile();
+    //await pickAndReadFile();
+    try {
+      XFile new_thumbnail = await addToThumbnails();
+
+      await _db(cameraName, cameraDetail, new_thumbnail);
+    } catch (e) { print(e); } 
+
     switchInstance();
-    
   }
 
-  Future<void> addToThumbnails() async {
+  /*
+  Future<void> pickAndReadFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+      allowMultiple: false,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    PlatformFile file = result.files.first;
+
+    print('${file.name}');
+    print('${file.size} bytes');
+    print('${file.extension}');
+  }
+
+  Future<void> _saveFile() async {
+    try {
+      const String content = 'Hello';
+      Uint8List bytes = Uint8List.fromList(content.codeUnits);
+
+      await FileSaver.instance.saveFile(
+        name: 'test',
+        bytes: bytes,
+        ext: 'txt',
+        mimeType: MimeType.text,
+      );
+    } catch (e) {
+      print(e);
+    }
+  }
+  */
+
+  /// create a database to store vital information
+  /// that needs to persist across app instances.
+  /// NB: data DOES NOT persist when debugging, if
+  /// you want to test this properly:
+  /// 
+  /// flutter build web
+  /// cd build/web
+  /// python3 -m http.server 8080
+  Future<void> _db(String db_camName, String db_camDetails, XFile db_thumbnail) async {
+    Uint8List bytes = await db_thumbnail.readAsBytes();
+    
+    final factory = getIdbFactory(); // for flutter web apps
+
+    final db = await factory!.open(
+      'setup_cameras',
+      version: 2,
+      onUpgradeNeeded: (VersionChangeEvent e) {
+        final db = e.database;
+
+        if (!db.objectStoreNames.contains('setup_cameras')) {
+          final store = db.createObjectStore(
+            'setup_cameras',
+            keyPath: 'id',
+            autoIncrement: true,
+          );
+
+          store.createIndex('camName', 'camName', unique: true);
+          store.createIndex('camDetails', 'camDetails', unique: false);
+          store.createIndex('thumbnail', 'thumbnail', unique: false);
+        }
+      },
+    );
+
+    final txn = db.transaction('setup_cameras', idbModeReadWrite);
+    final store = txn.objectStore('setup_cameras');
+
+    await store.add({
+      'camName': db_camName,
+      'camDetails': db_camDetails,
+      'thumbnail': bytes,  
+    });
+    
+    final items = await store.getAll();
+
+    await txn.completed;
+
+    print(items);
+  }
+
+  Future<XFile> addToThumbnails() async {
     XFile file = await cameraController!.takePicture();
     Future.delayed(Duration(milliseconds: 500));
     setState(() {thumbnails.add(file);});
     print(thumbnails);
+    return file;
   }
 
   /// This is the sub-page to add a new camera.
@@ -405,7 +533,15 @@ class _CameraPageState extends State<CameraPage> {
     } else if (userViewingCamera) {
       return viewingCameraTab();
     } else {
-      return createListView();
+      return FutureBuilder(
+        future: getDbData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return createListView();
+        }
+      );
     }
   }
 }
