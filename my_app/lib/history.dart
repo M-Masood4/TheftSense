@@ -19,7 +19,7 @@ class Incident {
   final String description;
 
   /// True when staff has reviewed the incident.
-  final bool reviewed;
+  bool reviewed;
 
   Incident({
     required this.id,
@@ -119,12 +119,48 @@ class _HistoryPageState extends State<HistoryPage> {
     ),
   ];
 
-  IncidentSeverity? _filterSeverity;
+  final Set<IncidentSeverity> _severityFilter = {};
+  final Set<String> _cameraFilter = {};
+  late RangeValues _timeRange;
 
-  /// Returns incidents filtered by the selected severity.
+  @override
+  /// Initializes default filter state.
+  void initState() {
+    super.initState();
+    _timeRange = const RangeValues(0, 24);
+  }
+
+  /// Converts a timestamp into a floating-hour value (e.g., 13.5 == 13:30).
+  double _timeOfDayHours(DateTime dt) {
+    return dt.hour + (dt.minute / 60.0);
+  }
+
+  /// Formats floating-hour values into a 24h time string.
+  String _formatTimeOfDay(double value) {
+    final totalMinutes = (value * 60).round().clamp(0, 1440);
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+    final hh = hours.toString().padLeft(2, '0');
+    final mm = minutes.toString().padLeft(2, '0');
+    return '$hh:$mm';
+  }
+
+  /// Returns incidents filtered by severity, camera, and time-of-day range.
   List<Incident> get filteredIncidents {
-    if (_filterSeverity == null) return _incidents;
-    return _incidents.where((i) => i.severity == _filterSeverity).toList();
+    return _incidents.where((i) {
+      // Multiple filters combine as an AND clause.
+      if (_severityFilter.isNotEmpty && !_severityFilter.contains(i.severity)) {
+        return false;
+      }
+      if (_cameraFilter.isNotEmpty && !_cameraFilter.contains(i.cameraName)) {
+        return false;
+      }
+      final timeOfDay = _timeOfDayHours(i.timestamp);
+      if (timeOfDay < _timeRange.start || timeOfDay > _timeRange.end) {
+        return false;
+      }
+      return true;
+    }).toList();
   }
 
   /// Formats a timestamp as a short relative time label.
@@ -148,63 +184,72 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   @override
+  /// Builds the timeline view with a filter drawer.
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Filter bar
-        Container(
-          padding: const EdgeInsets.all(12),
-          color: Colors.grey[100],
-          child: Row(
-            children: [
-              const Text(
-                'Filter: ',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip('All', null),
-              _buildFilterChip('Critical', IncidentSeverity.critical),
-              _buildFilterChip('High', IncidentSeverity.high),
-              _buildFilterChip('Medium', IncidentSeverity.medium),
-              _buildFilterChip('Low', IncidentSeverity.low),
-            ],
-          ),
-        ),
-        // Incident count summary
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${filteredIncidents.length} incidents',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              Text(
-                '${_incidents.where((i) => !i.reviewed).length} unreviewed',
-                style: const TextStyle(fontSize: 14, color: Colors.red),
-              ),
-            ],
-          ),
-        ),
-        // Timeline list
-        Expanded(
-          child: filteredIncidents.isEmpty
-              ? const Center(child: Text('No incidents found'))
-              : ListView.builder(
-                  itemCount: filteredIncidents.length,
-                  itemBuilder: (context, index) {
-                    return _buildTimelineItem(filteredIncidents[index], index);
-                  },
+    return Scaffold(
+      endDrawer: Drawer(child: _buildFilterDrawer()),
+      body: Column(
+        children: [
+          // Filter bar
+          Container(
+            padding: const EdgeInsets.all(12),
+            color: Colors.grey[100],
+            child: Row(
+              children: [
+                const Text(
+                  'Filters',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-        ),
-      ],
+                const Spacer(),
+                Builder(
+                  builder: (context) => IconButton(
+                    tooltip: 'Open filters',
+                    icon: const Icon(Icons.tune),
+                    onPressed: () => Scaffold.of(context).openEndDrawer(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Incident count summary
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${filteredIncidents.length} incidents',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                Text(
+                  '${_incidents.where((i) => !i.reviewed).length} unreviewed',
+                  style: const TextStyle(fontSize: 14, color: Colors.red),
+                ),
+              ],
+            ),
+          ),
+          // Timeline list
+          Expanded(
+            child: filteredIncidents.isEmpty
+                ? const Center(child: Text('No incidents found'))
+                : ListView.builder(
+                    itemCount: filteredIncidents.length,
+                    itemBuilder: (context, index) {
+                      return _buildTimelineItem(
+                        filteredIncidents[index],
+                        index,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
-  /// Filter chip for a specific severity level.
-  Widget _buildFilterChip(String label, IncidentSeverity? severity) {
-    final isSelected = _filterSeverity == severity;
+  /// Filter chip for a specific severity level (multi-select).
+  Widget _buildSeverityChip(String label, IncidentSeverity severity) {
+    final isSelected = _severityFilter.contains(severity);
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: FilterChip(
@@ -216,20 +261,118 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
         ),
         selected: isSelected,
-        selectedColor: severity?.index != null
-            ? [
-                Colors.green,
-                Colors.orange,
-                Colors.deepOrange,
-                Colors.red,
-              ][severity!.index]
-            : Colors.blue,
+        selectedColor: [
+          Colors.green,
+          Colors.orange,
+          Colors.deepOrange,
+          Colors.red,
+        ][severity.index],
         backgroundColor: Colors.white,
         onSelected: (selected) {
           setState(() {
-            _filterSeverity = selected ? severity : null;
+            if (selected) {
+              _severityFilter.add(severity);
+            } else {
+              _severityFilter.remove(severity);
+            }
           });
         },
+      ),
+    );
+  }
+
+  /// Right-side drawer containing all filter controls.
+  Widget _buildFilterDrawer() {
+    final cameras = _incidents.map((i) => i.cameraName).toSet().toList()
+      ..sort();
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text(
+            'Filters',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          const Text('Severity', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              FilterChip(
+                label: const Text('All'),
+                selected: _severityFilter.isEmpty,
+                onSelected: (_) {
+                  setState(() {
+                    _severityFilter.clear();
+                  });
+                },
+              ),
+              _buildSeverityChip('Critical', IncidentSeverity.critical),
+              _buildSeverityChip('High', IncidentSeverity.high),
+              _buildSeverityChip('Medium', IncidentSeverity.medium),
+              _buildSeverityChip('Low', IncidentSeverity.low),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Time Range (time of day)',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          RangeSlider(
+            min: 0,
+            max: 24,
+            divisions: 96,
+            values: _timeRange,
+            labels: RangeLabels(
+              _formatTimeOfDay(_timeRange.start),
+              _formatTimeOfDay(_timeRange.end),
+            ),
+            onChanged: (values) {
+              setState(() {
+                _timeRange = values;
+              });
+            },
+          ),
+          Text(
+            'From ${_formatTimeOfDay(_timeRange.start)} to ${_formatTimeOfDay(_timeRange.end)}',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 20),
+          const Text('Cameras', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: cameras.map((name) {
+              final selected = _cameraFilter.contains(name);
+              return FilterChip(
+                label: Text(name),
+                selected: selected,
+                onSelected: (value) {
+                  setState(() {
+                    if (value) {
+                      _cameraFilter.add(name);
+                    } else {
+                      _cameraFilter.remove(name);
+                    }
+                  });
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+          OutlinedButton(
+            onPressed: () {
+              setState(() {
+                _severityFilter.clear();
+                _cameraFilter.clear();
+                _timeRange = const RangeValues(0, 24);
+              });
+            },
+            child: const Text('Reset filters'),
+          ),
+        ],
       ),
     );
   }
@@ -496,7 +639,12 @@ class _HistoryPageState extends State<HistoryPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      setState(() {
+                        incident.reviewed = true;
+                      });
+                      Navigator.pop(context);
+                    },
                     icon: const Icon(Icons.check),
                     label: const Text('Mark Reviewed'),
                     style: ElevatedButton.styleFrom(
