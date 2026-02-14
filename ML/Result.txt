@@ -1,0 +1,28 @@
+Epoch [ 1/20 ] | Train Loss: 0.5782 | Val Loss: 0.5372 | Precision: 0.710 | Recall: 0.615 | F1: 0.659 | FP: 47.000 | FN: 72.000 | 
+Epoch [ 2/20 ] | Train Loss: 0.5087 | Val Loss: 0.5248 | Precision: 0.773 | Recall: 0.529 | F1: 0.629 | FP: 29.000 | FN: 88.000 | 
+Epoch [ 3/20 ] | Train Loss: 0.4868 | Val Loss: 0.5354 | Precision: 0.644 | Recall: 0.824 | F1: 0.723 | FP: 85.000 | FN: 33.000 | 
+Epoch [ 4/20 ] | Train Loss: 0.4633 | Val Loss: 0.4881 | Precision: 0.703 | Recall: 0.647 | F1: 0.674 | FP: 51.000 | FN: 66.000 | 
+Epoch [ 5/20 ] | Train Loss: 0.4629 | Val Loss: 0.5107 | Precision: 0.699 | Recall: 0.695 | F1: 0.697 | FP: 56.000 | FN: 57.000 | 
+Unfreezing spatial backbone 
+Epoch [ 6/20 ] | Train Loss: 0.4378 | Val Loss: 0.5069 | Precision: 0.685 | Recall: 0.663 | F1: 0.674 | FP: 57.000 | FN: 63.000 | 
+Epoch [ 7/20 ] | Train Loss: 0.3944 | Val Loss: 0.5332 | Precision: 0.698 | Recall: 0.679 | F1: 0.688 | FP: 55.000 | FN: 60.000 | 
+Epoch [ 8/20 ] | Train Loss: 0.4021 | Val Loss: 0.5040 | Precision: 0.770 | Recall: 0.572 | F1: 0.656 | FP: 32.000 | FN: 80.000 | 
+Epoch [ 9/20 ] | Train Loss: 0.3749 | Val Loss: 0.6050 | Precision: 0.684 | Recall: 0.717 | F1: 0.700 | FP: 62.000 | FN: 53.000 | 
+Epoch [ 10/20 ] | Train Loss: 0.3814 | Val Loss: 0.5693 | Precision: 0.697 | Recall: 0.652 | F1: 0.674 | FP: 53.000 | FN: 65.000 | 
+Epoch [ 11/20 ] | Train Loss: 0.3838 | Val Loss: 0.5400 | Precision: 0.748 | Recall: 0.588 | F1: 0.659 | FP: 37.000 | FN: 77.000 | 
+Epoch [ 12/20 ] | Train Loss: 0.3367 | Val Loss: 0.6855 | Precision: 0.657 | Recall: 0.727 | F1: 0.690 | FP: 71.000 | FN: 51.000 | 
+Epoch [ 13/20 ] | Train Loss: 0.3016 | Val Loss: 0.5683 | Precision: 0.798 | Recall: 0.487 | F1: 0.605 | FP: 23.000 | FN: 96.000 | 
+Epoch [ 14/20 ] | Train Loss: 0.3486 | Val Loss: 0.6757 | Precision: 0.752 | Recall: 0.487 | F1: 0.591 | FP: 30.000 | FN: 96.000 | 
+Epoch [ 15/20 ] | Train Loss: 0.2903 | Val Loss: 0.6318 | Precision: 0.665 | Recall: 0.711 | F1: 0.687 | FP: 67.000 | FN: 54.000 | 
+Epoch [ 16/20 ] | Train Loss: 0.3204 | Val Loss: 0.5640 | Precision: 0.726 | Recall: 0.610 | F1: 0.663 | FP: 43.000 | FN: 73.000 | 
+Epoch [ 17/20 ] | Train Loss: 0.3287 | Val Loss: 0.6332 | Precision: 0.697 | Recall: 0.690 | F1: 0.694 | FP: 56.000 | FN: 58.000 | 
+Epoch [ 18/20 ] | Train Loss: 0.2931 | Val Loss: 0.5760 | Precision: 0.681 | Recall: 0.695 | F1: 0.688 | FP: 61.000 | FN: 57.000 | 
+Epoch [ 19/20 ] | Train Loss: 0.2928 | Val Loss: 0.6773 | Precision: 0.704 | Recall: 0.572 | F1: 0.631 | FP: 45.000 | FN: 80.000 | 
+Epoch [ 20/20 ] | Train Loss: 0.3059 | Val Loss: 0.6803 | Precision: 0.692 | Recall: 0.674 | F1: 0.683 | FP: 56.000 | FN: 61.000 | 
+Training Complete, Model saved
+
+Here, our model gets upto ~69% precision, this means that there are 31% false alarms. Recall is ~67%, i.e. 33% cases of shoplifting
+were missed. 
+
+F1 Score is 68%, means model is decent in catching shoplifting as well as not raising false positives. Although this can be improved. 
+This is the main focus of our model, improving the F1 score.
