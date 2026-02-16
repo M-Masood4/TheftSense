@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+import 'pages/registration_page.dart';
+import 'pages/login_page.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -11,15 +12,17 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   String message = 'You Are Logged Out';
 
-  void _logIn() {
-    setState(() { 
-      message = 'You Are Logged In';
-    });
-    
-    // Navigate to the main app
-    Navigator.pushReplacement(
+  void _signUp() {
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MyHomePage(title: 'TheftSense\u2122')),
+      MaterialPageRoute(builder: (context) => const RegistrationPage()),
+    );
+  }
+
+  void _logIn() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 
@@ -42,13 +45,22 @@ class _LandingPageState extends State<LandingPage> {
             SizedBox(height:100),
             const Text('Welcome', style: TextStyle(fontSize:30)),
             Text(message, style: TextStyle(fontSize:30)),
+            const SizedBox(height: 24),
             SizedBox(
-              width: 80,
+              width: 140,
               height: 40,
-              child: FloatingActionButton(
+              child: ElevatedButton(
+                onPressed: _signUp,
+                child: const Text('Sign Up'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: 140,
+              height: 40,
+              child: ElevatedButton(
                 onPressed: _logIn,
-                tooltip: 'Log In',
-                child: const Text('Log In'),
+                child: const Text('Sign In'),
               ),
             ),
           ]

@@ -3,7 +3,12 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+<<<<<<< HEAD
   file_saver
+=======
+  gtk
+  url_launcher_linux
+>>>>>>> login-feature
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
