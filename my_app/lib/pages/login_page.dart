@@ -66,7 +66,17 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => const MyHomePage(title: "TheftSense")),
       );
     } on FirebaseAuthException catch (error) {
-      _showMessage(error.message ?? 'Sign in failed. Please try again.');
+      const invalidCredentialsCodes = {
+        'user-not-found',
+        'wrong-password',
+        'invalid-credential',
+        'invalid-email',
+      };
+      if (invalidCredentialsCodes.contains(error.code)) {
+        _showMessage('Incorrect email or password.');
+      } else {
+        _showMessage(error.message ?? 'Sign in failed. Please try again.');
+      }
     } catch (error) {
       _showMessage('Sign in failed. Please try again.');
     } finally {
@@ -134,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildLabeledField(
-              label: 'Username / Email',
+              label: 'Email',
               field: TextField(
                 controller: _loginController,
                 keyboardType: TextInputType.emailAddress,
