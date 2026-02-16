@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'forgot_password_page.dart';
 import 'two_fa_page.dart';
 
 class RegistrationPage extends StatefulWidget {
@@ -12,7 +11,6 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
-  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
@@ -26,18 +24,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
-  }
-
-  void _goToForgotPassword() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
-    );
   }
 
   void _goToTwoFa() {
@@ -55,7 +45,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Future<void> _register() async {
     final email = _emailController.text.trim();
-    final username = _usernameController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
     final now = DateTime.now();
@@ -66,7 +55,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       return;
     }
 
-    if (email.isEmpty || username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       _showMessage('Please fill in all fields.');
       return;
     }
@@ -85,10 +74,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
         email: email,
         password: password,
       );
-
-      if (username.isNotEmpty) {
-        await credential.user?.updateDisplayName(username);
-      }
 
       await credential.user?.sendEmailVerification();
 
@@ -178,14 +163,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ),
             const SizedBox(height: 18),
             _buildLabeledField(
-              label: 'Username',
-              field: TextField(
-                controller: _usernameController,
-                decoration: _fieldDecoration(hint: ''),
-              ),
-            ),
-            const SizedBox(height: 18),
-            _buildLabeledField(
               label: 'Password',
               field: TextField(
                 controller: _passwordController,
@@ -226,14 +203,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: _goToForgotPassword,
-                child: const Text('Forgot password?'),
               ),
             ),
             const SizedBox(height: 12),
