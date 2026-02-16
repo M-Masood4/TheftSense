@@ -6,12 +6,15 @@ import 'history.dart';
 import 'settings.dart';
 import 'landing.dart';
 
+import 'auto_test.dart' as auto;
+import 'dart:async';
+
 List<CameraDescription> priv_cameras = [];
 List<CameraDescription> cameras = [];
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  //priv_cameras = await availableCameras();
+
   runApp(const MyApp());
 }
 
@@ -63,6 +66,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 5), (Timer t) {auto.say();});
+  }
+  
   int _selectedIndex = 0;
 
   /// This is the list of pages. Right now each page is just a

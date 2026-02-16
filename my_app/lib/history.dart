@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 /// - Uses mock data that can be replaced with API results.
 enum IncidentSeverity { low, medium, high, critical }
 
+//global vars
+List<Incident> testIncidents = [];
+
 class Incident {
   final String id;
 
@@ -67,6 +70,7 @@ class HistoryPage extends StatefulWidget {
 }
 
 class _HistoryPageState extends State<HistoryPage> {
+  
   // Mock data - replace with actual API calls later.
   final List<Incident> _incidents = [
     Incident(

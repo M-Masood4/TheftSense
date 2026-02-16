@@ -4,10 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'main.dart';
-//import 'package:file_picker/file_picker.dart';
-//import 'package:file_saver/file_saver.dart';
 import 'package:idb_shim/idb_browser.dart';
 import 'package:idb_shim/idb.dart';
+
+// global variables
+List<String> cameraNames = [];
+List<String> cameraDetails = [];
+List<XFile> thumbnails = [];
 
 class CameraPage extends StatefulWidget {
   const CameraPage({Key? key}) : super(key: key);
@@ -35,14 +38,10 @@ class _CameraPageState extends State<CameraPage> {
   int attempt = 6;
   bool app_fresh_start = true;
   //end: debug var
-  SizedBox testA = SizedBox(
-        height: 250,
-        child: Center(child: CircularProgressIndicator()),
-      );
 
-  List<String> cameraNames = [];
-  List<String> cameraDetails = [];
-  List<XFile> thumbnails = [];
+  //List<String> cameraNames = [];
+  //List<String> cameraDetails = [];
+  //List<XFile> thumbnails = [];
   int pressToDelete = 0;
 
   bool userAddingCamera = false;
@@ -60,6 +59,11 @@ class _CameraPageState extends State<CameraPage> {
     return ListView(
       scrollDirection: Axis.vertical,
       children: [ 
+
+        Padding(
+          padding: EdgeInsetsGeometry.fromLTRB(10, 5, 5, 1),
+          child: Text('${cameraNames.length} cameras active', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        ),
 
         for (int i=0; i<cameraNames.length; i++) newCameraTab(cameraNames[i], cameraDetails[i], i),
         
@@ -280,13 +284,23 @@ class _CameraPageState extends State<CameraPage> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(
+            Container(
+              decoration: BoxDecoration(
+                border:(Border.all(color:Colors.grey, width: 10))
+                
+              ),
+              width: MediaQuery.of(context).size.width*0.83,
+              height: MediaQuery.of(context).size.height*0.5,
               child:
-                AspectRatio(
-                  aspectRatio: cameraController!.value.aspectRatio,
-                  child: CameraPreview(cameraController!),
-                )
-            ),
+                Expanded(
+                  child:
+                    AspectRatio(
+                      aspectRatio: cameraController!.value.aspectRatio,
+                      child: CameraPreview(cameraController!),
+                    )
+                ),
+              )
+            
           ]
         )
     );
@@ -297,33 +311,32 @@ class _CameraPageState extends State<CameraPage> {
   Future<void> addCamera(String cameraName, String cameraDetail) async {
     storePrevCamDetails = cameraDetail;
     storePrevCamName = cameraName;
-
+    
+    bool exit = false;
     setState(() {
       if (cameraName == '' || cameraDetail == '') {
         errorMsg = "Camera Details Required";
-        return;
+        exit = true;
       } else if (cameraNames.contains(cameraName)) {
         errorMsg = "Camera Name Already Exists";
-        return;
+        exit = true;
       }
+    });
+
+    if (!exit) {
 
       storePrevCamDetails = '';
       storePrevCamName = '';
       errorMsg = '';
 
-      //cameraNames.add(cameraName);
-      //cameraDetails.add(cameraDetail);
-    });
+      try {
+        XFile new_thumbnail = await addToThumbnails();
 
-    //await _saveFile();
-    //await pickAndReadFile();
-    try {
-      XFile new_thumbnail = await addToThumbnails();
+        await _db(cameraName, cameraDetail, new_thumbnail);
+      } catch (e) { print(e); } 
 
-      await _db(cameraName, cameraDetail, new_thumbnail);
-    } catch (e) { print(e); } 
-
-    switchInstance();
+      switchInstance();
+    }
   }
 
   /*
@@ -402,7 +415,7 @@ class _CameraPageState extends State<CameraPage> {
         }
       },
     );
-    //print('debug: ${db.objectStoreNames}');
+    
     final txn = db.transaction('setup_cameras', idbModeReadWrite);
     final store = txn.objectStore('setup_cameras');
 
@@ -411,14 +424,8 @@ class _CameraPageState extends State<CameraPage> {
       'camDetails': db_camDetails,
       'thumbnail': bytes,  
     });
-    
-    //final items = await store.getAll();
 
     await txn.completed;
-
-    //print(items);
-    //print('debug: ${db.objectStoreNames}');
-
     return;
   }
 
@@ -514,9 +521,33 @@ class _CameraPageState extends State<CameraPage> {
     return ListView(
       scrollDirection: Axis.vertical,
       children: [
+
         _displayOneCamera(),
-        Center(child:Text(cameraNames[cameraSelectorIndex].toString())),
-        Center(child:Text(cameraDetails[cameraSelectorIndex].toString())),
+
+        Padding(
+          padding: EdgeInsetsGeometry.fromLTRB(50, 5, 5, 5),
+          child:
+            Row(
+              children: [
+                Icon(Icons.videocam, size: 16, color: Colors.grey[600],),
+                SizedBox(width:10),
+                Center(child:Text(cameraNames[cameraSelectorIndex].toString())),
+              ]
+            ),
+        ),
+
+        Padding(
+          padding: EdgeInsetsGeometry.fromLTRB(50, 5, 5, 5),
+          child:
+            Row(
+              children: [
+                Icon(Icons.menu_book, size: 16, color: Colors.grey[600],),
+                SizedBox(width:10),
+                Center(child:Text(cameraDetails[cameraSelectorIndex].toString())),
+              ]
+            ),
+        ),
+
         Padding(
           padding:EdgeInsets.all(15), 
           child: FloatingActionButton(
