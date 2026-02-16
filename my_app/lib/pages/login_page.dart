@@ -157,6 +157,11 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 12),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(56),
+              ),
               onPressed: _isSubmitting ? null : _signIn,
               child: _isSubmitting
                   ? const SizedBox(

@@ -50,6 +50,10 @@ class _LandingPageState extends State<LandingPage> {
               width: 140,
               height: 40,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: _signUp,
                 child: const Text('Sign Up'),
               ),
@@ -59,6 +63,10 @@ class _LandingPageState extends State<LandingPage> {
               width: 140,
               height: 40,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: _logIn,
                 child: const Text('Sign In'),
               ),
