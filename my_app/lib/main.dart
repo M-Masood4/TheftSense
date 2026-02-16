@@ -1,21 +1,20 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'home.dart';
 import 'cameras.dart';
 import 'history.dart';
 import 'settings.dart';
 import 'landing.dart';
-import 'config/supabase_config.dart';
 
 List<CameraDescription> priv_cameras = [];
 List<CameraDescription> cameras = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
   //priv_cameras = await availableCameras();
   runApp(const MyApp());

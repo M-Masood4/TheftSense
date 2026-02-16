@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:my_app/main.dart';
 
@@ -44,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await Supabase.instance.client.auth.signInWithPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: login,
         password: password,
       );
@@ -57,8 +57,8 @@ class _LoginPageState extends State<LoginPage> {
         context,
         MaterialPageRoute(builder: (context) => const MyHomePage(title: "TheftSense")),
       );
-    } on AuthException catch (error) {
-      _showMessage(error.message);
+    } on FirebaseAuthException catch (error) {
+      _showMessage(error.message ?? 'Sign in failed. Please try again.');
     } catch (error) {
       _showMessage('Sign in failed. Please try again.');
     } finally {

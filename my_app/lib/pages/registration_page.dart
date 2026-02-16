@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'forgot_password_page.dart';
 import 'two_fa_page.dart';
@@ -81,28 +81,26 @@ class _RegistrationPageState extends State<RegistrationPage> {
     });
 
     try {
-      final response = await Supabase.instance.client.auth.signUp(
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
-        data: {
-          'username': username,
-        },
       );
 
-      _showMessage(
-        response.user == null
-            ? 'Check your email to confirm your account.'
-            : 'Account created successfully.',
-      );
-    } on AuthException catch (error) {
-      final statusCode = error.statusCode ?? 0;
-      if (statusCode == 429) {
+      if (username.isNotEmpty) {
+        await credential.user?.updateDisplayName(username);
+      }
+
+      await credential.user?.sendEmailVerification();
+
+      _showMessage('Check your email to confirm your account.');
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'too-many-requests') {
         _cooldownUntil = DateTime.now().add(_cooldownDuration);
         _showMessage(
           'Too many requests. Please wait a bit before trying again.',
         );
       } else {
-        _showMessage(error.message);
+        _showMessage(error.message ?? 'Registration failed. Please try again.');
       }
     } catch (error) {
       _showMessage('Registration failed. Please try again.');
