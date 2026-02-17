@@ -10,7 +10,6 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  String message = 'You Are Logged Out';
 
   void _signUp() {
     Navigator.push(
@@ -42,13 +41,12 @@ class _LandingPageState extends State<LandingPage> {
               height:120,
               child: Image.asset('lib/materials/theftSenseIcon.png', width:100, height:100)
             ),
-            SizedBox(height:100),
-            const Text('Welcome', style: TextStyle(fontSize:30)),
-            Text(message, style: TextStyle(fontSize:30)),
-            const SizedBox(height: 24),
+            SizedBox(height:50),
+            const Text('Welcome to TheftSense\u2122', style: TextStyle(fontSize:30)),
+            SizedBox(height: 80),
             SizedBox(
-              width: 140,
-              height: 40,
+              width: 200,
+              height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
@@ -60,8 +58,8 @@ class _LandingPageState extends State<LandingPage> {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              width: 140,
-              height: 40,
+              width: 200,
+              height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
