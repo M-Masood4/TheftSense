@@ -1,13 +1,14 @@
 export 'auto_test.dart';
 
-import 'cameras.dart';
-import 'history.dart' as history;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-void say() {
-  print('test:');
-  for (int i=0; i<cameraNames.length; i++) {
-    print(cameraNames[i]);
-  }
+Future<void> callApi() async {
+  final response = await http.get(
+    Uri.parse('http://3.250.190.187:8000/run?name=Jackie'),
+  );
 
-  
+  final data = jsonDecode(response.body);
+  print(data['result']);
 }
+

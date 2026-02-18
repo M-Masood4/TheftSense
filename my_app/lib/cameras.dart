@@ -54,15 +54,27 @@ class _CameraPageState extends State<CameraPage> {
   /// setting up a camera. It creates a list of all active camera
   /// tabs and a button to begin setting up a new camera.
   ListView createListView() {
-    //await getDbData();
+    Row row;
+
+    if (cameraNames.isEmpty) {row = Row();}
+    else { row = Row(
+            children: [
+              Text('${cameraNames.length} cameras active', style: const TextStyle(fontSize: 14, color: Colors.green)),
+              SizedBox(width:10),
+              Icon(Icons.circle, color: Colors.grey, size: 5),
+              SizedBox(width:10),
+              Text('0 problems', style: const TextStyle(fontSize: 14, color: Colors.grey))
+            ]
+          );
+    }
 
     return ListView(
       scrollDirection: Axis.vertical,
       children: [ 
 
         Padding(
-          padding: EdgeInsetsGeometry.fromLTRB(10, 5, 5, 1),
-          child: Text('${cameraNames.length} cameras active', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+          padding: EdgeInsetsGeometry.fromLTRB(15, 5, 5, 1),
+          child: row
         ),
 
         for (int i=0; i<cameraNames.length; i++) newCameraTab(cameraNames[i], cameraDetails[i], i),
@@ -92,8 +104,9 @@ class _CameraPageState extends State<CameraPage> {
         }, 
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(1),
-            color: const Color.fromARGB(255, 97, 95, 95),
+            border: Border.all(color: Colors.green, width:2),
+            borderRadius: BorderRadius.circular(12),
+            color: const Color.fromARGB(255, 196, 191, 191),
           ),
           height: 75,
           child: Row(
@@ -108,6 +121,8 @@ class _CameraPageState extends State<CameraPage> {
                 ),
               ),
               SizedBox(width:25),
+              Icon(Icons.menu_book_sharp),
+              SizedBox(width:5),
               Text(cameraName),
               SizedBox(width: 50),
               Text(cameraDetails)

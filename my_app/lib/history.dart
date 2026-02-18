@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 enum IncidentSeverity { low, medium, high, critical }
 
 //global vars
-List<Incident> testIncidents = [];
+List<Incident> listIncidents = [];
 
 class Incident {
   final String id;
@@ -72,7 +72,9 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState extends State<HistoryPage> {
   
   // Mock data - replace with actual API calls later.
-  final List<Incident> _incidents = [
+  //listIncidents.add();
+  
+  final List<Incident> listIncidents = [
     Incident(
       id: '001',
       timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
@@ -122,7 +124,7 @@ class _HistoryPageState extends State<HistoryPage> {
       reviewed: true,
     ),
   ];
-
+  
   final Set<IncidentSeverity> _severityFilter = {};
   final Set<String> _cameraFilter = {};
   late RangeValues _timeRange;
@@ -151,7 +153,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
   /// Returns incidents filtered by severity, camera, and time-of-day range.
   List<Incident> get filteredIncidents {
-    return _incidents.where((i) {
+    return listIncidents.where((i) {
       // Multiple filters combine as an AND clause.
       if (_severityFilter.isNotEmpty && !_severityFilter.contains(i.severity)) {
         return false;
@@ -226,7 +228,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 Text(
-                  '${_incidents.where((i) => !i.reviewed).length} unreviewed',
+                  '${listIncidents.where((i) => !i.reviewed).length} unreviewed',
                   style: const TextStyle(fontSize: 14, color: Colors.red),
                 ),
               ],
@@ -287,7 +289,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
   /// Right-side drawer containing all filter controls.
   Widget _buildFilterDrawer() {
-    final cameras = _incidents.map((i) => i.cameraName).toSet().toList()
+    final cameras = listIncidents.map((i) => i.cameraName).toSet().toList()
       ..sort();
     return SafeArea(
       child: ListView(
