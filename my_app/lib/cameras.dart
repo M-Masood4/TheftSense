@@ -88,6 +88,8 @@ class _CameraPageState extends State<CameraPage> {
           )
         ),
         if (cameraNames.isEmpty) Center(child:Text('You have no cameras setup, why not start now?')),
+
+        //https://t13-users-videos.s3.eu-west-1.amazonaws.com/camera_clips/clip_2026-02-18_12-45-20.mp4
       ]
     );
   }
