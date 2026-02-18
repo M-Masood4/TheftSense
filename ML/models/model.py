@@ -1,6 +1,7 @@
 import torch.nn as nn
 from models.spatial import SpatialEncoder
 from models.temporal import TemporalTransformer
+import torch
 
 class ShopliftingModel(nn.Module):
 
@@ -43,6 +44,30 @@ class ShopliftingModel(nn.Module):
     - Modular design allows easy replacement of spatial or temporal components.  
     """
 
+    # def __init__(self):
+    #     super().__init__()
+
+    #     self.spatial = SpatialEncoder()
+    #     self.temporal = TemporalTransformer()
+
+    #     self.classifier = nn.Sequential(
+    #         nn.Linear(512,128),
+    #         nn.ReLU(),
+    #         nn.Dropout(0.3),
+    #         nn.Linear(128,1)
+    #     )
+
+    # def forward(self, x):
+    #     x = self.spatial(x)
+    #     x = self.temporal(x)
+    #     return self.classifier(x).squeeze(1)
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    """
+    End-to-end spatiotemporal model with updated transformer and classifier.
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -50,7 +75,11 @@ class ShopliftingModel(nn.Module):
         self.temporal = TemporalTransformer()
 
         self.classifier = nn.Sequential(
-            nn.Linear(512,128),
+            nn.Linear(768,256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(256,128),
             nn.ReLU(),
             nn.Dropout(0.3),
             nn.Linear(128,1)

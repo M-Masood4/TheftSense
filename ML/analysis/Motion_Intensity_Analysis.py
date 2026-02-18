@@ -73,5 +73,5 @@ if __name__ == "__main__":
     plt.title("Motion Intensity Distribution")
     plt.xlabel("Average Frame-to-Frame Pixel Difference")
     plt.ylabel("Number of Clips")
-    plt.savefig("motion_intensity_distribution.png")  # headless-safe
+    plt.savefig("motion_intensity_distribution_improved.png")  # headless-safe
     print("Motion intensity histogram saved as motion_intensity_distribution.png")

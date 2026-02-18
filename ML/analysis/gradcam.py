@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import cv2 
 from models.model import ShopliftingModel
 from data.dataset import VideoDataset
+import random
 
 DEVICE = "cuda"
-MODEL_PATH = "shoplifting_model.pth"
-VIDEO_PATH = "sample_clip.mp4"
+MODEL_PATH = "shoplifting_model_YOLO_v1.pth"
 NUM_FRAMES = 50
 
 class GradCam:
@@ -46,7 +46,8 @@ class GradCam:
         self.activations = None
 
         target_layer.register_forward_hook(self.save_activation)
-        target_layer.register_backward_hook(self.save_gradient)
+        target_layer.register_full_backward_hook(self.save_gradient)
+
 
     def save_activation(self, module, input, output):
         self.activations = output.detach()
@@ -64,7 +65,7 @@ class GradCam:
     
 def overlay_cam(frame, cam):
     cam = cv2.resize(cam, (frame.shape[1], frame.shape[0]))
-    heatmap = cv2.applyColorMap(np.unit8(255*cam), cv2.COLORMAP_JET)
+    heatmap = cv2.applyColorMap(np.uint8(255*cam), cv2.COLORMAP_JET)
     return cv2.addWeighted(frame, 0.6, heatmap, 0.4, 0)
 
 if __name__ == "__main__":
@@ -76,23 +77,33 @@ if __name__ == "__main__":
 
     gradcam = GradCam(model, target_layer)
 
-    dataset = VideoDataset.from_single_video(VIDEO_PATH, NUM_FRAMES)
-
-    video, _ = dataset[0]
-    video = video.unsqeeze(0).to(DEVICE)
+    dataset = VideoDataset("manifests/train.txt", NUM_FRAMES)
+    clip_index = random.randint(0, len(dataset) - 1)
+    video, label = dataset[clip_index]
+    print(f"Selected clip index: {clip_index}")
+    print(f"Label: {'Shoplifting' if label == 1 else 'Normal'}")
+    video = video.unsqueeze(0).to(DEVICE)
 
     logits = model(video)
     logits.backward()
+    prob = torch.sigmoid(logits).item()
+    print(f"Model probability: {prob:.4f}")
 
     cam = gradcam.generate()[0]
+    T_actual = cam.shape[0]
+    for i in range(T_actual):
+        frame_np = video[0, i].permute(1,2,0).cpu().numpy()
+        frame_np = (frame_np * 255).astype(np.uint8)
+        cam_overlay = overlay_cam(frame_np, cam[i].cpu().numpy())
+        cv2.imwrite(f"gradcam_YOLO_frame_clip2_{i}.png", cv2.cvtColor(cam_overlay, cv2.COLOR_RGB2BGR))
 
-    mid = NUM_FRAMES // 2
-    frame = video[0, mid].permute(1,2,0).cpu().numpy()
-    frame = (frame*255).astype(np.uint8)
+    height, width, _ = frame_np.shape
+    out = cv2.VideoWriter("gradcam_YOLO_clip2.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 5, (width, height))
+    for i in range(T_actual):
+        frame_np = video[0, i].permute(1,2,0).cpu().numpy()
+        frame_np = (frame_np * 255).astype(np.uint8)
+        cam_overlay = overlay_cam(frame_np, cam[i].cpu().numpy())
+        out.write(cv2.cvtColor(cam_overlay, cv2.COLOR_RGB2BGR))
+    out.release()
 
-    cam_overlay = overlay_cam(frame, cam[mid].cpu().numpy())
-
-    plt.imshow(cam_overlay)
-    plt.title("Grad-CAM Visualization")
-    plt.axis("off")
-    plt.show()
+    print(f"Saved {T_actual} Gradcam frames and gradcam clip.")

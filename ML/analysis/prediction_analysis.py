@@ -35,10 +35,23 @@ Notes
     - Analysis is performed only on validation data.
     - Test data is intentionally excluded.
     - No training parameters are modified. 
+
+Changes
+    - Smoothed distributions used after results from shoplifting_model_v3.pth.
 """
 
+import numpy as np
+
+def temporal_smooth(probs, window=5):
+    smoothed = []
+    for i in range(len(probs)):
+        start = max(0, i - window + 1)
+        smoothed.append(np.mean(probs[start:i+1]))
+    return np.array(smoothed)
+
+
 DEVICE = "cuda"
-MODEL_PATH = "shoplifting_model.pth"
+MODEL_PATH = "shoplifting_model_YOLO_v1.pth"
 DATA_DIR = "manifests/val.txt"
 
 model = ShopliftingModel().to(DEVICE)
@@ -60,22 +73,24 @@ with torch.no_grad():
         all_probs.extend(probs.cpu().numpy())
         all_labels.extend(labels.numpy())
 
+smoothed_probs = temporal_smooth(all_probs, window=5)
+
 plt.hist(
-    [p for p, l in zip(all_probs, all_labels) if l == 0],
+    [p for p, l in zip(smoothed_probs, all_labels) if l == 0],
     alpha=0.6,
     label="Normal",
 )
 
 plt.hist(
-    [p for p, l in zip(all_probs, all_labels) if l == 1],
+    [p for p, l in zip(smoothed_probs, all_labels) if l == 1],
     alpha=0.6,
     label="Shoplifting",
 )
 
-plt.axvline(0.5, linestyle="--", color="Black")
+plt.axvline(0.35, linestyle="--", color="Black")
 plt.legend()
 plt.title("Prediction Confidence Distribution")
-plt.savefig("prediction_confidence.png")  # save instead of plt.show()
+plt.savefig("prediction_confidence_YOLO_v1.png")  # save instead of plt.show()
 
 # cd ~/Desktop/CS3305
 # python3 -m analysis.prediction_analysis
