@@ -611,13 +611,6 @@ class _CameraPageState extends State<CameraPage> {
 
                   if (pressToDelete >= 2) {
                     pressToDelete = 0;
-                    /*
-                    setState(() {
-                      cameraNames.removeAt(cameraSelectorIndex);
-                      cameraDetails.removeAt(cameraSelectorIndex);
-                      thumbnails.removeAt(cameraSelectorIndex);
-                    });
-                    */
                     _deleteFromDB(cameraNames[cameraSelectorIndex]);
                     switchInstance_viewCams(0);
                   }

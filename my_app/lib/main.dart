@@ -14,7 +14,7 @@ List<CameraDescription> cameras = [];
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   runApp(const MyApp());
 }
 
@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    //timer = Timer.periodic(const Duration(seconds: 5), (Timer t) async {await auto.callApi();});
+    timer = Timer.periodic(const Duration(seconds: 5), (Timer t) async {await auto.callApi();});
   }
   
   int _selectedIndex = 0;
