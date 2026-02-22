@@ -34,15 +34,12 @@ class _CameraPageState extends State<CameraPage> {
 
   CameraController? cameraController;
   int cameraSelectorIndex = 0;
-  //start: debug vars
+ 
   int attempt = 6;
   bool app_fresh_start = true;
-  //end: debug var
-
-  //List<String> cameraNames = [];
-  //List<String> cameraDetails = [];
-  //List<XFile> thumbnails = [];
+  
   int pressToDelete = 0;
+  String deleteInfo = "Delete Camera";
 
   bool userAddingCamera = false;
   bool userViewingCamera = false;
@@ -88,8 +85,6 @@ class _CameraPageState extends State<CameraPage> {
           )
         ),
         if (cameraNames.isEmpty) Center(child:Text('You have no cameras setup, why not start now?')),
-
-        //https://t13-users-videos.s3.eu-west-1.amazonaws.com/camera_clips/clip_2026-02-18_12-45-20.mp4
       ]
     );
   }
@@ -304,20 +299,15 @@ class _CameraPageState extends State<CameraPage> {
             Container(
               decoration: BoxDecoration(
                 border:(Border.all(color:Colors.grey, width: 10))
-                
               ),
-              width: MediaQuery.of(context).size.width*0.83,
+              width: MediaQuery.of(context).size.width*0.80,
               height: MediaQuery.of(context).size.height*0.5,
               child:
-                Expanded(
-                  child:
-                    AspectRatio(
-                      aspectRatio: cameraController!.value.aspectRatio,
-                      child: CameraPreview(cameraController!),
-                    )
-                ),
+                AspectRatio(
+                  aspectRatio: cameraController!.value.aspectRatio,
+                  child: CameraPreview(cameraController!),
+                )
               )
-            
           ]
         )
     );
@@ -446,6 +436,26 @@ class _CameraPageState extends State<CameraPage> {
     return;
   }
 
+  Future<void> _deleteFromDB(String db_camName) async {
+    final factory = getIdbFactory();
+    final db = await factory!.open('setup_cameras');
+
+    final txn = db.transaction('setup_cameras', idbModeReadWrite);
+    final store = txn.objectStore('setup_cameras');
+
+    // Get index
+    final index = store.index('camName');
+
+    // Find the key (id) for this camName
+    final key = await index.getKey(db_camName);
+
+    if (key != null) {
+      await store.delete(key);
+    }
+
+    await txn.completed;
+  }
+
   Future<XFile> addToThumbnails() async {
     XFile file = await cameraController!.takePicture();
     Future.delayed(Duration(milliseconds: 500));
@@ -534,7 +544,7 @@ class _CameraPageState extends State<CameraPage> {
   }
   
   ListView viewingCameraTab() {
-    pressToDelete = 0;
+    //pressToDelete = 0;
     return ListView(
       scrollDirection: Axis.vertical,
       children: [
@@ -565,32 +575,63 @@ class _CameraPageState extends State<CameraPage> {
             ),
         ),
 
-        Padding(
-          padding:EdgeInsets.all(15), 
-          child: FloatingActionButton(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            onPressed: () {switchInstance_viewCams(0); },
-            child: Text('Cancel'),
-          )
-        ),
-        Padding(
-          padding:EdgeInsets.all(15), 
-          child: FloatingActionButton(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.black,
-            onPressed: () { 
-              pressToDelete += 1;
-              if (pressToDelete >= 2) {
-                pressToDelete = 0;
-                cameraNames.removeAt(cameraSelectorIndex);
-                cameraDetails.removeAt(cameraSelectorIndex);
-                thumbnails.removeAt(cameraSelectorIndex);
-                switchInstance_viewCams(0);
-              }
-            },
-            child: Text('Delete Camera (Press Twice)'),
-          )
+        Row(        
+          children: [
+            SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.425,
+              child:
+                OutlinedButton.icon(
+                  icon: Icon(Icons.exit_to_app_outlined),
+                  label: Text('Cancel'),
+                  onPressed: () { 
+                    switchInstance_viewCams(0);
+                    pressToDelete = 0;
+                    deleteInfo = "Delete Camera";
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey,
+                    side: BorderSide(color: Colors.black),
+                  ),
+                ),
+            ),
+            SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.425,
+              child: OutlinedButton.icon(
+                icon: Icon(Icons.delete),
+                label: Text('$deleteInfo'),
+                onPressed: () { 
+                  pressToDelete += 1;
+                  
+                  setState(() {
+                    if (pressToDelete == 1) {deleteInfo="Confirm Deletion";}
+                    else {deleteInfo="Delete Camera";}
+                  });
+
+                  if (pressToDelete >= 2) {
+                    pressToDelete = 0;
+                    /*
+                    setState(() {
+                      cameraNames.removeAt(cameraSelectorIndex);
+                      cameraDetails.removeAt(cameraSelectorIndex);
+                      thumbnails.removeAt(cameraSelectorIndex);
+                    });
+                    */
+                    _deleteFromDB(cameraNames[cameraSelectorIndex]);
+                    switchInstance_viewCams(0);
+                  }
+                  
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.red,
+                  side: BorderSide(color: Colors.black),
+                ),
+              ),
+            ),
+            SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+          ]
         )
       ]
     );
