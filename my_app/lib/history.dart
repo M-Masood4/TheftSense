@@ -262,18 +262,104 @@ class _HistoryPageState extends State<HistoryPage> {
         ],
       ) : ListView(
         children: [
-          _controller!.value.isInitialized ? AspectRatio(
-          aspectRatio: _controller!.value.aspectRatio,
-          child: VideoPlayer(_controller!), ) : CircularProgressIndicator(),
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: MediaQuery.of(context).size.height * 0.65,
+            child:
+              _controller!.value.isInitialized ? AspectRatio(
+              aspectRatio: _controller!.value.aspectRatio,
+              child: VideoPlayer(_controller!), ) : CircularProgressIndicator(),
+          ),
+
+          SizedBox(height:MediaQuery.of(context).size.height * 0.01),
         
-          FloatingActionButton(
-            onPressed: () async {
-                      //Navigator.pop(context);
-                      await _controller!.dispose();
-                      setState(() {playingVideo = false;});
-          }),
+          Row(
+            children:[
+              SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.425,
+                child:
+                  OutlinedButton.icon(
+                    icon: Icon(Icons.check),
+                    label: Text("Mark As Shoplifting"),
+                    onPressed: () async {
+                              //Navigator.pop(context);
+                              await _controller!.dispose();
+                              setState(() {playingVideo = false;});
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: BorderSide(color: Colors.redAccent),
+                    ),
+                  ),
+              ),
+              SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.425,
+                child:
+                  OutlinedButton.icon(
+                    icon: Icon(Icons.no_accounts),
+                    label: Text("Mark As False Alarm"),
+                    onPressed: () async {
+                              //Navigator.pop(context);
+                              await _controller!.dispose();
+                              setState(() {playingVideo = false;});
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green,
+                      side: BorderSide(color: Colors.greenAccent),
+                    ),
+                  ),
+              ),
+              SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+            ]
+          ),
+        
+          SizedBox(height:MediaQuery.of(context).size.height * 0.01),
+
+          Row(
+            children:[
+              SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.425,
+                child:
+                  OutlinedButton.icon(
+                    icon: Icon(Icons.exit_to_app_sharp),
+                    label: Text("Close Footage"),
+                    onPressed: () async {
+                              await _controller!.dispose();
+                              setState(() {playingVideo = false;});
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey,
+                      side: BorderSide(color: Colors.black),
+                    ),
+                  ),
+              ),
+              SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.425,
+                child:
+                  OutlinedButton.icon(
+                    icon: Icon(Icons.replay),
+                    label: Text("Watch Again"),
+                    onPressed: () async {
+                              _controller!.seekTo(Duration.zero);
+                              _controller!.play();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey,
+                      side: BorderSide(color: Colors.black),
+                    ),
+                  ),
+              ),
+              SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+            ]
+          ),
+        
         ]
       ),
+      
     );
     
   }
@@ -668,7 +754,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     //onPressed: () => Navigator.pop(context),
                     onPressed: () async {
                       Navigator.pop(context);
-                      await setupVideoController('https://t13-users-videos.s3.eu-west-1.amazonaws.com/camera_clips/clip_2026-02-18_12-45-20.mp4?response-content-disposition=inline&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEKD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCWV1LXdlc3QtMSJGMEQCIBtqhEeBZM812zSCEzVwr81xDs6Cmzgp00eh2mUv6YPjAiAiccZyVwKPNKFw9AoUkcyXiC6NsoMY9CHEhclEARlnwyq5AwhpEAAaDDIwNDAxMjkwMTg1NCIMHdlEwE1VKF816azgKpYDNgw%2FnT2X24M7P6aqwxwUW%2FPvJ3sDwTvVwU5ob3gHRMNJQe3RytdB9Zb8aaUtY6ZkDYUWTkkHFNdrC54Nx5MDTv9gyV3%2BtVnDVARv7bRf9TcA%2FigYmcROHx9bkA7iRMfkry9B2ZNoml%2BH8j0x%2FSkph6e%2FqRrLBbW39haiZqDpSCLmru%2F%2BIq0i2Hpr67v4cq5UQd3JpJdXWmiV27NVQCdX%2B95tfNQb9a3PIbRmoTSHI4VQp9h9Gq5EdEkviqW9LtZwALKd8%2FEpP07aTo7HdxJGaWeTHbZQq9SPgSUpiApPNYctWbLf7pmrbNCjgLrMulUuGCZiqk1ID%2FIzSUrFO9W7kVvkb6hnnvt%2B47cOUx6%2BKEDBR96YjkhRLG8OWuoyrTgr6q9wNvLHUSYke%2B8W3xjPnBUC%2BkaXD1pRtqvopa3NRAwfKjpHmr8A2iDX5h2oAczoHtZ643gBamxsk693up8ArGstZh0Z7xPH2GIAjoq1MylbyzBZCNhmzPHZRa44B6XAtw8V6M3pT8%2BqvZ6%2Fve10mN9kpEfTZjDrwdbMBjrfAuLG5V8vbqEX7RDYDdUZ80CTVOjk7KsKeoUr%2FeP21324RPoiRU%2BUMR%2BL1JfgujE0jdiIlm%2F3yVcTfvx5oetSZduxo2rNMTtX5OofnuRbVGFYhnzb4JUbKd3D8yHu76wj6bhRnYBHfMjZMrSQGvyvH5az0TEgtqy2rkxPv048rGSHIsahpQjyIiuJATn4BXEu0WAVdq%2BSVq2YGNqvZKFIwBS2n7G8svtnl0bAWmbRuqj6VFIb%2FL51WzSxkldOvkFHOMVq4kn%2FqAhoczj7pnWTa0uOQbpR%2BEE86qn1Bd9hkNhxqevvsgbQL90kbBdFfeZaw1nXSvMY9I2u%2Ft54%2F5rB7RDSuo8jLj9jDC1QwUnwH8fbPkB9ZiEansEs%2BcoQShoeoJbm5634eN5GHQMVaILBmCizqeTjMLVZM8SR%2FlPFqQ31BgE%2F7tlBl79xbZTnzFXDyiiDVRIQMMI%2BjCnG%2FTeNRQ%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAS7AA52XPFIPT53C4%2F20260218%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260218T154223Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=cd8cd218ddbd37d8dc569f751374a31c25f9ab2337520e0d1c60d2c3c93c983b');
+                      await setupVideoController('https://t13-users-videos.s3.eu-west-1.amazonaws.com/test_clip.mp4?response-content-disposition=inline&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEP3%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCWV1LXdlc3QtMSJIMEYCIQD5XQu%2FOUNfTv8XS47I9Fj4%2Bz%2BDjVsidgm6zu1sEjWjTgIhAMlnQWxbcQ4ex7twZ9zcSoO%2FJDrIRqAHG8rvv%2Fq9PSWcKsIDCMb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQABoMMjA0MDEyOTAxODU0IgxSwDe9Nv29utOn4TEqlgOeuKUehoihjw3vVnm8%2FPkoDiD27bA%2BGvRaE%2B6mjZeXlG4A%2B%2Bqk9L%2FrSBUk3LlKFRTsWNcdsPLF3RMtQAU3302JCkX5kWL%2B567SroGrHKHGmHBMo%2Bn8O4wuLlY6TIQba6xzsW8OVdnFC7I%2BTx3%2Fz8Zmk3XPWF33VQuSOMKOP5HnACSmvZMoRiGWqE1F%2BWm%2B0yTtoViapcNDCmFkatxyLwkr9LLm2Aw%2FJXI5VloJnrqDnMv0fEqrHD7NcYoxgdERIHev1L%2Bg0gw6QPfzZciYyzuyF1DvSaHubROO%2Bj9bV94vEXfOAIs2dGP8GKK1COKyYhZg3Pf6QURpUp%2BUaRqov241yDdG57H3WuFyvsCv6zfYR7Vy5WhXhMy5bE1RjmbKDkUdG5vHBn3R6k57TPUTsvnBtjRXvm3oRSWGbcF%2F17j97vhtM6nzcb9kUI0pQ5Lk2mX5gGCCLNzJKOqAH0RisUvIXudwYzPfVUuWpuSU09%2BsXpVAywhaK2VmHCRyg%2BIhKHXnWc%2FZKVRUY%2FSdWHDFzoXK0C1XeKcKMMHO68wGOt0C5zf8ENClLozLRHTlorbFevbmsnsgEhJhd4i9k829qFSxg%2BeAx1H0i%2BT1JCcpgp5M%2BA9ZN13JDQnkUdMZqBHGhK0dF%2FhugabzpJPU0fDoWlSXrxN6gZhXiQEqewQya2nzMBIyJ%2Fs%2BiFJNJK9y7oRHPaPEsMJ5%2BBshx4BO7Dp6CDGTisLXyQPEHEM1E6P0vcqoikAFAA%2FblaHNTSAEK4btE9z%2FKyvUYJrTFTpNdD5n57kFZ8EqN5pNcFpcV1dZB5c9kyZTR2qh4MLE76UXPUTxNXItUG30nAd58QLab6Py8E3tsleNwmNiEga5JcYO52y59a8oDLw%2BYRqBaObjR5VU5Ri30T4DtScg%2FXh4Ib0Zot0WBOwVJMAA9N5lByxdws1PmcgkEsJDxIfu1481MN1YOVYEoe6%2B%2B2v83si85jGtm9juEhldsUOL0sh5tuEacHtJf1ggBfbX2uRaOZGLFg%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAS7AA52XPH7JGQEAM%2F20260222%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260222T122601Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=5d2798af9c13baf63ad619664cd25bdd31632df4f8727c7872bd6c9e5cbd4dc1');
                       setState(() {playingVideo = true;});
                     },
                     icon: const Icon(Icons.play_circle_outline),
@@ -744,12 +830,4 @@ class _HistoryPageState extends State<HistoryPage> {
       print(e);
     }
   }
-  /* to delete
-  Future<void> disposeVideoController() async {
-    if (_controller != null) {
-      await _controller.dispose();
-      _controller = null;
-    }
-  }
-  */
 }
