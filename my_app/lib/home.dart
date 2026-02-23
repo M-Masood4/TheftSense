@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 import 'package:video_player/video_player.dart';
+import 'cameras.dart';
 import 'history.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,6 +14,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   VideoPlayerController? _controller;
   bool playingVideo = false;
+  CameraController? _dashboardCameraController;
+  bool viewingDashboardCamera = false;
+  int selectedDashboardCameraIndex = 0;
 
   final List<Incident> _incidents = [
     Incident(
@@ -43,7 +48,44 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _controller?.dispose();
+    _dashboardCameraController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _disposeDashboardCamera() async {
+    if (_dashboardCameraController != null) {
+      await _dashboardCameraController!.dispose();
+      _dashboardCameraController = null;
+    }
+  }
+
+  Future<void> _openDashboardCamera(int index) async {
+    final available = await availableCameras();
+    if (available.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No device cameras available.')),
+      );
+      return;
+    }
+
+    selectedDashboardCameraIndex = index;
+    final cameraIndex = index % available.length;
+
+    await _disposeDashboardCamera();
+
+    _dashboardCameraController = CameraController(
+      available[cameraIndex],
+      ResolutionPreset.low,
+      enableAudio: false,
+    );
+
+    await _dashboardCameraController!.initialize();
+
+    if (!mounted) return;
+    setState(() {
+      viewingDashboardCamera = true;
+    });
   }
 
   Future<void> setupVideoController(String videoURL) async {
@@ -221,8 +263,90 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: !playingVideo
-          ? SafeArea(
+      body: viewingDashboardCamera
+          ? ListView(
+              scrollDirection: Axis.vertical,
+              children: [
+                if (_dashboardCameraController == null ||
+                    _dashboardCameraController?.value.isInitialized == false)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(50, 5, 50, 5),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey, width: 10),
+                          ),
+                          width: MediaQuery.of(context).size.width * 0.80,
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: AspectRatio(
+                            aspectRatio:
+                                _dashboardCameraController!.value.aspectRatio,
+                            child: CameraPreview(_dashboardCameraController!),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(50, 5, 5, 5),
+                  child: Row(
+                    children: [
+                      Icon(Icons.videocam, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 10),
+                      Text(
+                        selectedDashboardCameraIndex < cameraNames.length
+                            ? cameraNames[selectedDashboardCameraIndex]
+                            : '',
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(50, 5, 5, 5),
+                  child: Row(
+                    children: [
+                      Icon(Icons.menu_book, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 10),
+                      Text(
+                        selectedDashboardCameraIndex < cameraDetails.length
+                            ? cameraDetails[selectedDashboardCameraIndex]
+                            : '',
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.exit_to_app_outlined),
+                        label: const Text('Cancel'),
+                        onPressed: () async {
+                          await _disposeDashboardCamera();
+                          if (!mounted) return;
+                          setState(() {
+                            viewingDashboardCamera = false;
+                          });
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.grey,
+                          side: const BorderSide(color: Colors.black),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+                  ],
+                ),
+              ],
+            )
+          : !playingVideo
+              ? SafeArea(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                 children: [
@@ -240,17 +364,121 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 8),
                   const Text('Dashboard', style: sectionTitleStyle),
                   const SizedBox(height: 12),
-                  const Text(
-                    'You have no cameras set up, why not start now?',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black,
-                    ),
+                  ValueListenableBuilder<int>(
+                    valueListenable: camerasVersion,
+                    builder: (context, _, __) {
+                      if (cameraNames.isEmpty) {
+                        return const Text(
+                          'You have no cameras set up, why not start now?',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '${cameraNames.length} cameras active',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const Icon(Icons.circle, color: Colors.grey, size: 5),
+                              const SizedBox(width: 10),
+                              const Text(
+                                '0 problems',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          for (int i = 0; i < cameraNames.length; i++)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () => _openDashboardCamera(i),
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 75,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  decoration: BoxDecoration(
+                                    color: const Color.fromARGB(255, 196, 191, 191),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.green, width: 2),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.15),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const SizedBox(width: 25),
+                                      SizedBox(
+                                        height: 40,
+                                        width: 55,
+                                        child: i < thumbnails.length
+                                            ? Image.network(
+                                                thumbnails[i].path,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return Container(
+                                                    color: Colors.grey[350],
+                                                    child: const Icon(Icons.image_not_supported),
+                                                  );
+                                                },
+                                              )
+                                            : Container(
+                                                color: Colors.grey[350],
+                                                child: const Icon(
+                                                  Icons.videocam,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                      ),
+                                      const SizedBox(width: 25),
+                                      const Icon(
+                                        Icons.menu_book_sharp,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        cameraNames[i],
+                                        style: const TextStyle(color: Colors.white),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(width: 50),
+                                      Text(
+                                        i < cameraDetails.length ? cameraDetails[i] : '',
+                                        style: const TextStyle(color: Colors.white),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
             )
-          : ListView(
+              : ListView(
               children: [
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.8,

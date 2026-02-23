@@ -11,6 +11,7 @@ import 'package:idb_shim/idb.dart';
 List<String> cameraNames = [];
 List<String> cameraDetails = [];
 List<XFile> thumbnails = [];
+ValueNotifier<int> camerasVersion = ValueNotifier<int>(0);
 
 class CameraPage extends StatefulWidget {
   const CameraPage({Key? key}) : super(key: key);
@@ -154,6 +155,8 @@ class _CameraPageState extends State<CameraPage> {
       cameraDetails.add(map['camDetails']);
       thumbnails.add(XFile.fromData(map['thumbnail']));
     }
+
+    camerasVersion.value++;
     //});
     
     print('names $cameraNames');
@@ -433,6 +436,7 @@ class _CameraPageState extends State<CameraPage> {
     });
 
     await txn.completed;
+    camerasVersion.value++;
     return;
   }
 
@@ -454,6 +458,7 @@ class _CameraPageState extends State<CameraPage> {
     }
 
     await txn.completed;
+    camerasVersion.value++;
   }
 
   Future<XFile> addToThumbnails() async {
