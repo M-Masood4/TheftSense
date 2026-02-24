@@ -11,27 +11,25 @@ import 'history.dart';
 /// NOTE: Flask app must be running first, flutter web
 /// can't start flask on its own so manually run it
 /// first with: python py_gen_vid_url.py
-Future<void> callApi() async {
+Future<List<String>> callApi() async {
   
-  String user = "Jack";
+  String user = "testUser";
   String file_path = "lib/temp_folder/test_clip.mp4";
-  //C:\Users\Jack\OneDrive\Desktop\Team_Software_Project_New\GroupProject\my_app\lib\temp_folder\test_clip.mp4
-  //String result = (await http.get(Uri.parse('http://localhost:5000/gen_url?user=$user&file_path=$file_path'))).toString();
 
-  final result = (await http.get(Uri.http('localhost:5000','/gen_url',{'user':user,'file_path':file_path},)));//.toString();
+  try {
+    //final result = (await http.get(Uri.http('localhost:5000','/gen_url',{'user':user,'file_path':file_path},)));//.toString();
+    final result = (await http.get(Uri.http('localhost:5000','/fetch_incidents',{'user':user},)));
 
+    final List data = jsonDecode(result.body);
+    
+    return List<String>.from(data.skip(1));
+  
+  } catch (e) {
+    print(e);
+    return [];
+  }
 
-  Incident test = new Incident(
-    id: "e",
-    timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-    cameraName: 'TEST CAMERA',
-    severity: IncidentSeverity.critical,
-    description: 'TEST INCIDENT',
-    reviewed: false,
-  );
-
-  print('debug: ${result.body}');
-  print('debug: ${test.id}');
+  
 
 }
 

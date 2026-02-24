@@ -2,7 +2,7 @@ export 'history.dart';
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-
+import 'auto_test.dart' as auto;
 
 /// History timeline page for incidents.
 ///
@@ -13,14 +13,15 @@ enum IncidentSeverity { low, medium, high, critical }
 
 //global vars
 List<Incident> listIncidents = [];
+List<String> accessUrls = [];
 
 class Incident {
   final String id;
-
+  final String hidden_id;
   /// When the incident occurred.
   final DateTime timestamp;
   final String cameraName;
-  final IncidentSeverity severity;
+  IncidentSeverity severity;
   final String description;
   //String URL = '';
 
@@ -29,6 +30,7 @@ class Incident {
 
   Incident({
     required this.id,
+    required this.hidden_id,
     required this.timestamp,
     required this.cameraName,
     required this.severity,
@@ -72,13 +74,14 @@ class HistoryPage extends StatefulWidget {
   State<HistoryPage> createState() => _HistoryPageState();
 }
 
-class _HistoryPageState extends State<HistoryPage> {
+class _HistoryPageState extends State<HistoryPage>  {
   
   // Mock data - replace with actual API calls later.
   //listIncidents.add();
   VideoPlayerController? _controller;
   bool playingVideo = false;
-  
+
+  /*
   final List<Incident> listIncidents = [
     Incident(
       id: '001',
@@ -129,7 +132,10 @@ class _HistoryPageState extends State<HistoryPage> {
       reviewed: true,
     ),
   ];
-  
+  */
+  //final listIncidents = await auto.callApi();
+  Incident? currentlyReviewing;
+
   final Set<IncidentSeverity> _severityFilter = {};
   final Set<String> _cameraFilter = {};
   late RangeValues _timeRange;
@@ -138,12 +144,43 @@ class _HistoryPageState extends State<HistoryPage> {
   void initState() {
     super.initState();
     _timeRange = const RangeValues(0, 24);
+    loadIncidents();
   }
 
   @override
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  Future<void> loadIncidents() async {
+    try {
+      final urls = await auto.callApi();
+
+      setState(() {
+        listIncidents.clear(); // optional, if you don’t want duplicates
+
+        for (String url in urls) {
+          listIncidents.add(
+            Incident(
+              id: 'Main Lobby Camera',
+              hidden_id: url,
+              timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
+              cameraName: 'Main Lobby Camera',
+              severity: IncidentSeverity.critical,
+              description: 'Suspected Shoplifting Detected',
+              reviewed: false,
+            ),
+          );
+        }
+      });
+
+      //debug
+      print('debug #00a: $urls');
+
+    } catch(e) {
+      print(e);
+    }
   }
 
   /// Converts a timestamp into a floating-hour value (e.g., 13.5 == 13:30).
@@ -283,7 +320,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     icon: Icon(Icons.check),
                     label: Text("Mark As Shoplifting"),
                     onPressed: () async {
-                              //Navigator.pop(context);
+                              currentlyReviewing!.reviewed = true;
                               await _controller!.dispose();
                               setState(() {playingVideo = false;});
                     },
@@ -301,7 +338,8 @@ class _HistoryPageState extends State<HistoryPage> {
                     icon: Icon(Icons.no_accounts),
                     label: Text("Mark As False Alarm"),
                     onPressed: () async {
-                              //Navigator.pop(context);
+                              currentlyReviewing!.reviewed = true;
+                              currentlyReviewing!.severity = IncidentSeverity.low;
                               await _controller!.dispose();
                               setState(() {playingVideo = false;});
                     },
@@ -753,8 +791,9 @@ class _HistoryPageState extends State<HistoryPage> {
                   child: OutlinedButton.icon(
                     //onPressed: () => Navigator.pop(context),
                     onPressed: () async {
+                      currentlyReviewing = incident; 
                       Navigator.pop(context);
-                      await setupVideoController('https://t13-users-videos.s3.eu-west-1.amazonaws.com/test_clip.mp4?response-content-disposition=inline&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEP3%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCWV1LXdlc3QtMSJIMEYCIQD5XQu%2FOUNfTv8XS47I9Fj4%2Bz%2BDjVsidgm6zu1sEjWjTgIhAMlnQWxbcQ4ex7twZ9zcSoO%2FJDrIRqAHG8rvv%2Fq9PSWcKsIDCMb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQABoMMjA0MDEyOTAxODU0IgxSwDe9Nv29utOn4TEqlgOeuKUehoihjw3vVnm8%2FPkoDiD27bA%2BGvRaE%2B6mjZeXlG4A%2B%2Bqk9L%2FrSBUk3LlKFRTsWNcdsPLF3RMtQAU3302JCkX5kWL%2B567SroGrHKHGmHBMo%2Bn8O4wuLlY6TIQba6xzsW8OVdnFC7I%2BTx3%2Fz8Zmk3XPWF33VQuSOMKOP5HnACSmvZMoRiGWqE1F%2BWm%2B0yTtoViapcNDCmFkatxyLwkr9LLm2Aw%2FJXI5VloJnrqDnMv0fEqrHD7NcYoxgdERIHev1L%2Bg0gw6QPfzZciYyzuyF1DvSaHubROO%2Bj9bV94vEXfOAIs2dGP8GKK1COKyYhZg3Pf6QURpUp%2BUaRqov241yDdG57H3WuFyvsCv6zfYR7Vy5WhXhMy5bE1RjmbKDkUdG5vHBn3R6k57TPUTsvnBtjRXvm3oRSWGbcF%2F17j97vhtM6nzcb9kUI0pQ5Lk2mX5gGCCLNzJKOqAH0RisUvIXudwYzPfVUuWpuSU09%2BsXpVAywhaK2VmHCRyg%2BIhKHXnWc%2FZKVRUY%2FSdWHDFzoXK0C1XeKcKMMHO68wGOt0C5zf8ENClLozLRHTlorbFevbmsnsgEhJhd4i9k829qFSxg%2BeAx1H0i%2BT1JCcpgp5M%2BA9ZN13JDQnkUdMZqBHGhK0dF%2FhugabzpJPU0fDoWlSXrxN6gZhXiQEqewQya2nzMBIyJ%2Fs%2BiFJNJK9y7oRHPaPEsMJ5%2BBshx4BO7Dp6CDGTisLXyQPEHEM1E6P0vcqoikAFAA%2FblaHNTSAEK4btE9z%2FKyvUYJrTFTpNdD5n57kFZ8EqN5pNcFpcV1dZB5c9kyZTR2qh4MLE76UXPUTxNXItUG30nAd58QLab6Py8E3tsleNwmNiEga5JcYO52y59a8oDLw%2BYRqBaObjR5VU5Ri30T4DtScg%2FXh4Ib0Zot0WBOwVJMAA9N5lByxdws1PmcgkEsJDxIfu1481MN1YOVYEoe6%2B%2B2v83si85jGtm9juEhldsUOL0sh5tuEacHtJf1ggBfbX2uRaOZGLFg%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAS7AA52XPH7JGQEAM%2F20260222%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260222T122601Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=5d2798af9c13baf63ad619664cd25bdd31632df4f8727c7872bd6c9e5cbd4dc1');
+                      await setupVideoController(incident.hidden_id);
                       setState(() {playingVideo = true;});
                     },
                     icon: const Icon(Icons.play_circle_outline),

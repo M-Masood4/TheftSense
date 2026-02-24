@@ -12,6 +12,9 @@ import 'dart:async';
 List<CameraDescription> priv_cameras = [];
 List<CameraDescription> cameras = [];
 
+//for history page
+List<String> links = [];
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -72,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(seconds: 5), (Timer t) async {await auto.callApi();});
+    //timer = Timer.periodic(const Duration(seconds: 5), (Timer t) async {await auto.callApi();});
   }
   
   int _selectedIndex = 0;

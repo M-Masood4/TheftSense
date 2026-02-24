@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   final List<Incident> _incidents = [
     Incident(
       id: '001',
+      hidden_id: '001',
       timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
       cameraName: 'Entrance Camera',
       severity: IncidentSeverity.critical,
@@ -29,6 +30,7 @@ class _HomePageState extends State<HomePage> {
     ),
     Incident(
       id: '002',
+      hidden_id: '002',
       timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
       cameraName: 'Aisle 3 Camera',
       severity: IncidentSeverity.high,
@@ -37,6 +39,7 @@ class _HomePageState extends State<HomePage> {
     ),
     Incident(
       id: '003',
+      hidden_id: '003',
       timestamp: DateTime.now().subtract(const Duration(hours: 3)),
       cameraName: 'Electronics Section',
       severity: IncidentSeverity.medium,

@@ -73,24 +73,38 @@ def gen_url():
         print("Only files with '.mp4' extension can be uploaded!")
         return "error"
     
-    '''
+### NEXT FUNCTION
+
+@app.route("/fetch_incidents")
+def fetch_incidents():
+    user = request.args.get("user") + '/'
+
     try:
-        url = s3.generate_presigned_url(
-            ClientMethod="put_object",
-            Params={
-                "Bucket" : "t13-users-videos",
-                "Key" : "test_clip.mp4",
-                "ContentType" : "video/mp4"
-            },
-            #Link will expire in one day
-            ExpiresIn=86400
-        )
-        return jsonify({"url":url})
-    except:
-        print('lmao imagine failing')
-        url = ''
-        return jsonify({"url":"fail"})
-    '''
+        ### generate url for each video and store in 'links'
+        links = []
+
+        paginator = s3.get_paginator("list_objects_v2")
+
+        for page in paginator.paginate(Bucket='t13-marked-videos', Prefix=user):
+            for video in page.get("Contents", []):
+                key = video["Key"]
+
+                links.append(s3.generate_presigned_url(
+                    ClientMethod="get_object",
+                    Params={
+                        "Bucket": "t13-marked-videos",
+                        "Key": key
+                    },
+                    ExpiresIn=86400
+                ))
+
+        return links
+
+
+    except Exception as e:
+        print(e)
+
+
 
 if __name__ == "__main__":
     app.run()
