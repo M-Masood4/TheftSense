@@ -16,6 +16,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
   bool _passwordObscured = true;
   bool _confirmPasswordObscured = true;
@@ -45,10 +46,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
+  bool _isStrongPassword(String password) {
+    return password.length >= 8 &&
+        RegExp(r'[A-Z]').hasMatch(password) &&
+        RegExp(r'[a-z]').hasMatch(password) &&
+        RegExp(r'\d').hasMatch(password) &&
+        RegExp(r'[!@#\$%^&*(),.?":{}|<>_\-+=/\\\[\]~`]').hasMatch(password);
+  }
+
   Future<void> _register() async {
     final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
     final now = DateTime.now();
 
     if (_cooldownUntil != null && now.isBefore(_cooldownUntil!)) {
@@ -59,6 +68,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     if (email.isEmpty || password.isEmpty) {
       _showMessage('Please fill in all fields.');
+      return;
+    }
+
+    if (!_emailRegex.hasMatch(email)) {
+      _showMessage('Please enter a valid email address.');
+      return;
+    }
+
+    if (!_isStrongPassword(password)) {
+      _showMessage('Use at least 8 characters with uppercase, lowercase, numbers, and symbols.');
       return;
     }
 
@@ -87,7 +106,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           'Too many requests. Please wait a bit before trying again.',
         );
       } else {
-        _showMessage(error.message ?? 'Registration failed. Please try again.');
+        _showMessage('Registration failed. Please verify details and try again.');
       }
     } catch (error) {
       _showMessage('Registration failed. Please try again.');
@@ -135,10 +154,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
         context,
         MaterialPageRoute(builder: (context) => const MyHomePage(title: "TheftSense")),
       );
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       if (mounted) {
-        print('Firebase Auth Error: ${e.code} - ${e.message}');
-        _showMessage('Google sign up failed: ${e.message}');
+        _showMessage('Google sign up failed. Please try again.');
       }
     } catch (error) {
       // Don't show error if user simply cancelled
@@ -147,7 +165,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
           !errorMsg.contains('user_canceled') && 
           !errorMsg.contains('popup_closed') &&
           mounted) {
-        print('Google Sign-Up Error: $error');
         _showMessage('Google sign up failed. Please try again.');
       }
     } finally {
@@ -303,23 +320,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 side: BorderSide(color: Colors.grey[300]!),
               ),
               onPressed: _isSubmitting ? null : _signUpWithGoogle,
-              icon: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-                child: ClipOval(
-                  child: Image.network(
-                    'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
-                    width: 24,
-                    height: 24,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.account_circle, size: 24);
-                    },
-                  ),
-                ),
+              icon: Image.network(
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/48px-Google_%22G%22_logo.svg.png',
+                width: 20,
+                height: 20,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.g_mobiledata, size: 24);
+                },
               ),
               label: const Text('Sign up with Google'),
             ),

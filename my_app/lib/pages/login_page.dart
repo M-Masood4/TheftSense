@@ -15,6 +15,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
   bool _passwordObscured = true;
   bool _isSubmitting = false;
@@ -41,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signIn() async {
     final login = _loginController.text.trim();
-    final password = _passwordController.text;
+    final password = _passwordController.text.trim();
 
     if (login.isEmpty || password.isEmpty) {
       _showMessage('Please enter your email and password.');
@@ -66,18 +67,8 @@ class _LoginPageState extends State<LoginPage> {
         context,
         MaterialPageRoute(builder: (context) => const MyHomePage(title: "TheftSense")),
       );
-    } on FirebaseAuthException catch (error) {
-      const invalidCredentialsCodes = {
-        'user-not-found',
-        'wrong-password',
-        'invalid-credential',
-        'invalid-email',
-      };
-      if (invalidCredentialsCodes.contains(error.code)) {
-        _showMessage('Incorrect email or password.');
-      } else {
-        _showMessage(error.message ?? 'Sign in failed. Please try again.');
-      }
+    } on FirebaseAuthException {
+      _showMessage('Sign in failed. Check your credentials and try again.');
     } catch (error) {
       _showMessage('Sign in failed. Please try again.');
     } finally {
@@ -124,10 +115,9 @@ class _LoginPageState extends State<LoginPage> {
         context,
         MaterialPageRoute(builder: (context) => const MyHomePage(title: "TheftSense")),
       );
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       if (mounted) {
-        print('Firebase Auth Error: ${e.code} - ${e.message}');
-        _showMessage('Google sign in failed: ${e.message}');
+        _showMessage('Google sign in failed. Please try again.');
       }
     } catch (error) {
       // Don't show error if user simply cancelled
@@ -136,7 +126,6 @@ class _LoginPageState extends State<LoginPage> {
           !errorMsg.contains('user_canceled') && 
           !errorMsg.contains('popup_closed') &&
           mounted) {
-        print('Google Sign-In Error: $error');
         _showMessage('Google sign in failed. Please try again.');
       }
     } finally {
@@ -278,23 +267,14 @@ class _LoginPageState extends State<LoginPage> {
                 side: BorderSide(color: Colors.grey[300]!),
               ),
               onPressed: _isSubmitting ? null : _signInWithGoogle,
-              icon: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-                child: ClipOval(
-                  child: Image.network(
-                    'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
-                    width: 24,
-                    height: 24,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.account_circle, size: 24);
-                    },
-                  ),
-                ),
+              icon: Image.network(
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/48px-Google_%22G%22_logo.svg.png',
+                width: 20,
+                height: 20,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.g_mobiledata, size: 24);
+                },
               ),
               label: const Text('Sign in with Google'),
             ),
