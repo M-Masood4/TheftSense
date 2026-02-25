@@ -3,6 +3,8 @@ export 'history.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'auto_test.dart' as auto;
+import 'dart:math';
+//import 'cameras.dart' as cameras;
 
 /// History timeline page for incidents.
 ///
@@ -156,11 +158,23 @@ class _HistoryPageState extends State<HistoryPage>  {
   Future<void> loadIncidents() async {
     try {
       final urls = await auto.callApi();
+      final incidentCamName = 'Main Lobby Camera';
+      final descriptions = [
+        'Suspected Shoplifting At $incidentCamName',
+        'Suspicious Activity At $incidentCamName',
+        '$incidentCamName Sent Out An Alert',
+        'Unusual Behavior Detected',
+        'Potential Concealment Detected Near $incidentCamName',
+        'This Camera Needs Attention',
+        'Behaviour Flagged As Suspicious',
+        '$incidentCamName Flagged Recent Activity As Suspicious'
+      ];
 
       setState(() {
         listIncidents.clear(); // optional, if you don’t want duplicates
 
         for (String url in urls) {
+          int descSelector = Random().nextInt(descriptions.length);
           listIncidents.add(
             Incident(
               id: 'Main Lobby Camera',
@@ -168,7 +182,7 @@ class _HistoryPageState extends State<HistoryPage>  {
               timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
               cameraName: 'Main Lobby Camera',
               severity: IncidentSeverity.critical,
-              description: 'Suspected Shoplifting Detected',
+              description: descriptions[descSelector],
               reviewed: false,
             ),
           );
@@ -365,6 +379,8 @@ class _HistoryPageState extends State<HistoryPage>  {
                     icon: Icon(Icons.exit_to_app_sharp),
                     label: Text("Close Footage"),
                     onPressed: () async {
+                              currentlyReviewing!.reviewed = true;
+                              currentlyReviewing!.severity = IncidentSeverity.medium;
                               await _controller!.dispose();
                               setState(() {playingVideo = false;});
                     },
