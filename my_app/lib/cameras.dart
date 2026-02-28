@@ -13,7 +13,7 @@ List<String> cameraDetails = [];
 List<XFile> thumbnails = [];
 
 class CameraPage extends StatefulWidget {
-  const CameraPage({Key? key}) : super(key: key);
+  const CameraPage({super.key});
 
   @override
   State<CameraPage> createState() => _CameraPageState();
@@ -347,9 +347,9 @@ class _CameraPageState extends State<CameraPage> {
       errorMsg = '';
 
       try {
-        XFile new_thumbnail = await addToThumbnails();
+        XFile newThumbnail = await addToThumbnails();
 
-        await _db(cameraName, cameraDetail, new_thumbnail);
+        await _db(cameraName, cameraDetail, newThumbnail);
       } catch (e) { print(e); } 
 
       switchInstance();
@@ -400,8 +400,8 @@ class _CameraPageState extends State<CameraPage> {
   /// flutter build web
   /// cd build/web
   /// python3 -m http.server 8080
-  Future<void> _db(String db_camName, String db_camDetails, XFile db_thumbnail) async {
-    Uint8List bytes = await db_thumbnail.readAsBytes();
+  Future<void> _db(String dbCamname, String dbCamdetails, XFile dbThumbnail) async {
+    Uint8List bytes = await dbThumbnail.readAsBytes();
 
     if (app_fresh_start) { 
       cameraNames = [];
@@ -437,8 +437,8 @@ class _CameraPageState extends State<CameraPage> {
     final store = txn.objectStore('setup_cameras');
 
     await store.add({
-      'camName': db_camName,
-      'camDetails': db_camDetails,
+      'camName': dbCamname,
+      'camDetails': dbCamdetails,
       'thumbnail': bytes,  
     });
 

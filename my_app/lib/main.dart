@@ -1,10 +1,13 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'home.dart';
 import 'cameras.dart';
 import 'history.dart';
 import 'settings.dart';
 import 'landing.dart';
+import 'firebase_options.dart';
+import 'services/notification_service.dart';
 
 import 'auto_test.dart' as auto;
 import 'dart:async';
@@ -12,8 +15,14 @@ import 'dart:async';
 List<CameraDescription> priv_cameras = [];
 List<CameraDescription> cameras = [];
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Initialize notification service
+  await NotificationService().initialize();
 
   runApp(const MyApp());
 }
@@ -26,6 +35,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
       /// NOTE: this is overriding the settings
       /// in landing.dart, if you want to change
       /// the app's color scheme, remove 'theme'.
@@ -66,7 +76,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  
   Timer? timer;
 
   @override
@@ -74,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     //timer = Timer.periodic(const Duration(seconds: 5), (Timer t) async {await auto.callApi();});
   }
-  
+
   int _selectedIndex = 0;
 
   /// This is the list of pages. Right now each page is just a
@@ -87,9 +96,9 @@ class _MyHomePageState extends State<MyHomePage> {
     const HistoryPage(),
     SettingsPage(),
   ];
-  void _changePage(int page_index) {
+  void _changePage(int pageIndex) {
     setState(() {
-      _selectedIndex = page_index;
+      _selectedIndex = pageIndex;
     });
   }
 
@@ -115,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
        * currentIndex: index of the page that is selected (must be 0 < x < items.length)
        */
       bottomNavigationBar: BottomNavigationBar(
-          selectedItemColor: Colors.black,
+        selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         onTap: _changePage,

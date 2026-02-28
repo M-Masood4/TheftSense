@@ -31,6 +31,19 @@
 
   <title>my_app</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Firebase Service Worker for Web Push Notifications -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('Firebase Service Worker registered:', registration);
+        })
+        .catch((error) => {
+          console.error('Firebase Service Worker registration failed:', error);
+        });
+    }
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

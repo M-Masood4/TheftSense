@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 /// ListView() to maintain conceptual integrity 
 /// across the project.
 class page_name extends StatelessWidget {
+  const page_name({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ListView();

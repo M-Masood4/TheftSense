@@ -66,7 +66,7 @@ class Incident {
 }
 
 class HistoryPage extends StatefulWidget {
-  const HistoryPage({Key? key}) : super(key: key);
+  const HistoryPage({super.key});
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();
@@ -627,7 +627,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         ),
                       ),
                       Text(
-                        incident.severityLabel + ' Severity',
+                        '${incident.severityLabel} Severity',
                         style: TextStyle(
                           color: incident.severityColor,
                           fontWeight: FontWeight.w500,

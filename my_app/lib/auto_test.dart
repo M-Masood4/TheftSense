@@ -17,7 +17,7 @@ Future<void> callApi() async {
 
   String result = (await http.get(Uri.parse('http://localhost:5000/gen_url'))).toString();
 
-  Incident test = new Incident(
+  Incident test = Incident(
     id: result,
     timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
     cameraName: 'TEST CAMERA',
