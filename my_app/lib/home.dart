@@ -17,7 +17,7 @@ class _HomePageState extends State<HomePage> {
   CameraController? _dashboardCameraController;
   bool viewingDashboardCamera = false;
   int selectedDashboardCameraIndex = 0;
-
+  /*
   final List<Incident> _incidents = [
     Incident(
       id: '001',
@@ -47,12 +47,32 @@ class _HomePageState extends State<HomePage> {
       reviewed: true,
     ),
   ];
+  */
+
+  List<Incident>? _incidents = [];
+  int currentlyReviewingHome = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    Future.delayed(Duration(milliseconds: 1000), () {
+      if (listIncidents.isNotEmpty && mounted) {
+        setState(() {_incidents = listIncidents;});
+      }
+    });
+  }
 
   @override
   void dispose() {
     _controller?.dispose();
     _dashboardCameraController?.dispose();
     super.dispose();
+  }
+
+  Future<void> getIncidents() async {
+    await listIncidents;
+    setState((){_incidents = listIncidents;});
   }
 
   Future<void> _disposeDashboardCamera() async {
@@ -140,6 +160,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showIncidentDetails(Incident incident) async {
+    currentlyReviewingHome = _incidents!.indexOf(incident);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -225,7 +246,7 @@ class _HomePageState extends State<HomePage> {
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       Navigator.pop(context);
-                      await setupVideoController('https://t13-users-videos.s3.eu-west-1.amazonaws.com/test_clip.mp4?response-content-disposition=inline&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEP3%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCWV1LXdlc3QtMSJIMEYCIQD5XQu%2FOUNfTv8XS47I9Fj4%2Bz%2BDjVsidgm6zu1sEjWjTgIhAMlnQWxbcQ4ex7twZ9zcSoO%2FJDrIRqAHG8rvv%2Fq9PSWcKsIDCMb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQABoMMjA0MDEyOTAxODU0IgxSwDe9Nv29utOn4TEqlgOeuKUehoihjw3vVnm8%2FPkoDiD27bA%2BGvRaE%2B6mjZeXlG4A%2B%2Bqk9L%2FrSBUk3LlKFRTsWNcdsPLF3RMtQAU3302JCkX5kWL%2B567SroGrHKHGmHBMo%2Bn8O4wuLlY6TIQba6xzsW8OVdnFC7I%2BTx3%2Fz8Zmk3XPWF33VQuSOMKOP5HnACSmvZMoRiGWqE1F%2BWm%2B0yTtoViapcNDCmFkatxyLwkr9LLm2Aw%2FJXI5VloJnrqDnMv0fEqrHD7NcYoxgdERIHev1L%2Bg0gw6QPfzZciYyzuyF1DvSaHubROO%2Bj9bV94vEXfOAIs2dGP8GKK1COKyYhZg3Pf6QURpUp%2BUaRqov241yDdG57H3WuFyvsCv6zfYR7Vy5WhXhMy5bE1RjmbKDkUdG5vHBn3R6k57TPUTsvnBtjRXvm3oRSWGbcF%2F17j97vhtM6nzcb9kUI0pQ5Lk2mX5gGCCLNzJKOqAH0RisUvIXudwYzPfVUuWpuSU09%2BsXpVAywhaK2VmHCRyg%2BIhKHXnWc%2FZKVRUY%2FSdWHDFzoXK0C1XeKcKMMHO68wGOt0C5zf8ENClLozLRHTlorbFevbmsnsgEhJhd4i9k829qFSxg%2BeAx1H0i%2BT1JCcpgp5M%2BA9ZN13JDQnkUdMZqBHGhK0dF%2FhugabzpJPU0fDoWlSXrxN6gZhXiQEqewQya2nzMBIyJ%2Fs%2BiFJNJK9y7oRHPaPEsMJ5%2BBshx4BO7Dp6CDGTisLXyQPEHEM1E6P0vcqoikAFAA%2FblaHNTSAEK4btE9z%2FKyvUYJrTFTpNdD5n57kFZ8EqN5pNcFpcV1dZB5c9kyZTR2qh4MLE76UXPUTxNXItUG30nAd58QLab6Py8E3tsleNwmNiEga5JcYO52y59a8oDLw%2BYRqBaObjR5VU5Ri30T4DtScg%2FXh4Ib0Zot0WBOwVJMAA9N5lByxdws1PmcgkEsJDxIfu1481MN1YOVYEoe6%2B%2B2v83si85jGtm9juEhldsUOL0sh5tuEacHtJf1ggBfbX2uRaOZGLFg%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAS7AA52XPH7JGQEAM%2F20260222%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260222T122601Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=5d2798af9c13baf63ad619664cd25bdd31632df4f8727c7872bd6c9e5cbd4dc1');
+                      await setupVideoController(incident.hidden_id);
                       setState(() {
                         playingVideo = true;
                       });
@@ -355,7 +376,8 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   const Text('Review', style: sectionTitleStyle),
                   const SizedBox(height: 12),
-                  ..._incidents.map(
+                  
+                  if(_incidents!.isNotEmpty) ..._incidents!.map(
                     (incident) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: _IncidentCard(
@@ -363,7 +385,8 @@ class _HomePageState extends State<HomePage> {
                         onTap: () => _showIncidentDetails(incident),
                       ),
                     ),
-                ),
+                  ) else Text("You're All Caught Up!"),
+                  
                   const SizedBox(height: 8),
                   const Text('Dashboard', style: sectionTitleStyle),
                   const SizedBox(height: 12),
@@ -503,6 +526,7 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.check),
                         label: const Text('Mark As Shoplifting'),
                         onPressed: () async {
+                          _incidents!.removeAt(currentlyReviewingHome);
                           await _controller!.dispose();
                           setState(() {
                             playingVideo = false;
@@ -521,6 +545,7 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.no_accounts),
                         label: const Text('Mark As False Alarm'),
                         onPressed: () async {
+                          _incidents!.removeAt(currentlyReviewingHome);
                           await _controller!.dispose();
                           setState(() {
                             playingVideo = false;
@@ -545,6 +570,7 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.exit_to_app_sharp),
                         label: const Text('Close Footage'),
                         onPressed: () async {
+                          _incidents!.removeAt(currentlyReviewingHome);
                           await _controller!.dispose();
                           setState(() {
                             playingVideo = false;

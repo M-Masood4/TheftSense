@@ -181,7 +181,7 @@ class _HistoryPageState extends State<HistoryPage>  {
               hidden_id: url,
               timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
               cameraName: 'Main Lobby Camera',
-              severity: IncidentSeverity.critical,
+              severity: IncidentSeverity.high,
               description: descriptions[descSelector],
               reviewed: false,
             ),
@@ -335,6 +335,7 @@ class _HistoryPageState extends State<HistoryPage>  {
                     label: Text("Mark As Shoplifting"),
                     onPressed: () async {
                               currentlyReviewing!.reviewed = true;
+                              currentlyReviewing!.severity = IncidentSeverity.critical;
                               await _controller!.dispose();
                               setState(() {playingVideo = false;});
                     },
