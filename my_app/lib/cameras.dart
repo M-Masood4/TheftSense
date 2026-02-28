@@ -93,10 +93,21 @@ class _CameraPageState extends State<CameraPage> {
   /// called by createListView(), creates a 'tab' for
   /// each camera that is currently registered.
   Padding newCameraTab(String cameraName, String cameraDetails, int thumbnailsIndex) {
+    String cameraDetailsString;
+    int maxStringLength = 30;
+    if (cameraName.length + cameraDetails.length > maxStringLength) {
+      int n = maxStringLength - cameraName.length;
+      if (cameraDetails.length >= n) cameraDetailsString = cameraDetails.substring(0,n) + '...';
+      else cameraDetailsString = cameraDetails.substring(0,cameraDetails.length);
+    } else {
+      cameraDetailsString = cameraDetails;
+    }
+
     return Padding(
       padding:EdgeInsets.all(10),
-      child: FloatingActionButton(
-        onPressed: () {
+      child: InkWell(
+        
+        onTap: () {
           print('$thumbnailsIndex');
           switchInstance_viewCams(thumbnailsIndex); 
         }, 
@@ -104,9 +115,9 @@ class _CameraPageState extends State<CameraPage> {
           decoration: BoxDecoration(
             border: Border.all(color: Colors.green, width:2),
             borderRadius: BorderRadius.circular(12),
-            color: const Color.fromARGB(255, 196, 191, 191),
+            color: const Color.fromARGB(255, 237, 232, 232),
           ),
-          height: 75,
+          height: 100,
           child: Row(
             children: [
               SizedBox(width:25),
@@ -114,16 +125,18 @@ class _CameraPageState extends State<CameraPage> {
               Padding(
                 padding: EdgeInsets.all(10),
                 child: SizedBox(
-                  height:200, 
+                  height:100, 
                   child: Image.network(thumbnails[thumbnailsIndex].path),
                 ),
               ),
               SizedBox(width:25),
-              Icon(Icons.menu_book_sharp),
+              
+              Icon(Icons.menu_sharp, color: Colors.black),
               SizedBox(width:5),
-              Text(cameraName),
-              SizedBox(width: 50),
-              Text(cameraDetails)
+              Text(cameraName, style:TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis),
+              SizedBox(width: 25),
+              Text(cameraDetailsString, style:TextStyle(color: const Color.fromARGB(255, 130, 129, 129)), maxLines: 1, overflow: TextOverflow.ellipsis)
+              
             ]
           )
         )
@@ -348,42 +361,6 @@ class _CameraPageState extends State<CameraPage> {
       switchInstance();
     }
   }
-
-  /*
-  Future<void> pickAndReadFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['txt'],
-      allowMultiple: false,
-    );
-
-    if (result == null) {
-      return;
-    }
-
-    PlatformFile file = result.files.first;
-
-    print('${file.name}');
-    print('${file.size} bytes');
-    print('${file.extension}');
-  }
-
-  Future<void> _saveFile() async {
-    try {
-      const String content = 'Hello';
-      Uint8List bytes = Uint8List.fromList(content.codeUnits);
-
-      await FileSaver.instance.saveFile(
-        name: 'test',
-        bytes: bytes,
-        ext: 'txt',
-        mimeType: MimeType.text,
-      );
-    } catch (e) {
-      print(e);
-    }
-  }
-  */
 
   /// create a database to store vital information
   /// that needs to persist across app instances.

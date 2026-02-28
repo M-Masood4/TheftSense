@@ -70,11 +70,13 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  /// fetches list of incidents from 'history.dart'.
   Future<void> getIncidents() async {
     await listIncidents;
     setState((){_incidents = listIncidents;});
   }
 
+  /// disposes _dashboardCameraController if it exists.
   Future<void> _disposeDashboardCamera() async {
     if (_dashboardCameraController != null) {
       await _dashboardCameraController!.dispose();
@@ -82,6 +84,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// gets list of cameras available to the app, then selects the camera
+  /// pointed to by 'index' and attaches it the _dashboardCameraController.
   Future<void> _openDashboardCamera(int index) async {
     final available = await availableCameras();
     if (available.isEmpty) {
@@ -111,6 +115,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// sets up _controller for videos that were fetched from the S3 bucket.
   Future<void> setupVideoController(String videoURL) async {
     try {
       _controller = VideoPlayerController.networkUrl(Uri.parse(videoURL));
@@ -125,11 +130,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// custom date-time formatter.
   String _formatFullDate(DateTime dt) {
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} '
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
+  /// creates a dashboard tab for each 'Incident' that exists in the bucket.
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -159,6 +166,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// bottom sheet that becomes displays an Incident's details
+  /// when the user clicks on the relevant tab in the home page.
   Future<void> _showIncidentDetails(Incident incident) async {
     currentlyReviewingHome = _incidents!.indexOf(incident);
     showModalBottomSheet(
@@ -281,6 +290,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// build() defines what widgets are displayed on the screen.
+  /// Called whenever flutter needs to re-render a widget.
   @override
   Widget build(BuildContext context) {
     const sectionTitleStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
@@ -436,10 +447,10 @@ class _HomePageState extends State<HomePage> {
                                 onTap: () => _openDashboardCamera(i),
                                 child: Container(
                                   width: double.infinity,
-                                  height: 75,
+                                  height: 100,
                                   padding: const EdgeInsets.symmetric(horizontal: 14),
                                   decoration: BoxDecoration(
-                                    color: const Color.fromARGB(255, 196, 191, 191),
+                                    color: const Color.fromARGB(255, 237, 232, 232),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(color: Colors.green, width: 2),
                                     boxShadow: [
@@ -462,34 +473,34 @@ class _HomePageState extends State<HomePage> {
                                                 fit: BoxFit.cover,
                                                 errorBuilder: (context, error, stackTrace) {
                                                   return Container(
-                                                    color: Colors.grey[350],
+                                                    color: Color.fromARGB(255, 237, 232, 232),
                                                     child: const Icon(Icons.image_not_supported),
                                                   );
                                                 },
                                               )
                                             : Container(
-                                                color: Colors.grey[350],
+                                                color: Color.fromARGB(255, 237, 232, 232),
                                                 child: const Icon(
                                                   Icons.videocam,
-                                                  color: Colors.white,
+                                                  color: Color.fromARGB(255, 237, 232, 232),
                                                 ),
                                               ),
                                       ),
                                       const SizedBox(width: 25),
                                       const Icon(
-                                        Icons.menu_book_sharp,
-                                        color: Colors.white,
+                                        Icons.menu_sharp,
+                                        color: Colors.black,
                                       ),
                                       const SizedBox(width: 5),
                                       Text(
                                         cameraNames[i],
-                                        style: const TextStyle(color: Colors.white),
+                                        style: const TextStyle(color: Colors.black),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(width: 50),
                                       Text(
-                                        i < cameraDetails.length ? cameraDetails[i] : '',
-                                        style: const TextStyle(color: Colors.white),
+                                        i < cameraDetails.length ? (cameraDetails[i].length>5 ? cameraDetails[i].substring(0,5)+'...' : cameraDetails[i].substring(0,cameraDetails[i].length)+'...') : '',
+                                        style: const TextStyle(color: Colors.grey),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
@@ -607,6 +618,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+/// constructor class for Incident Cards in the home page.
 class _IncidentCard extends StatelessWidget {
   const _IncidentCard({required this.incident, required this.onTap});
 
