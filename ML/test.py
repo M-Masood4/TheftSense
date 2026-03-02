@@ -6,6 +6,54 @@ from sklearn.metrics import precision_score, recall_score, f1_score, confusion_m
 from data.dataset import VideoDataset
 from models.model import ShopliftingModel
 
+"""
+Model evaluation script for shoplifting detection. 
+
+Loads a trained ShopliftingModel checkpoint and evalutes 
+performance on a test dataset defined via a manifest file. 
+Uses a fixed probability threshold to convert model outputs
+into binary predictions and computes standard classification 
+metrics. 
+
+Workflow:
+
+    1. Load trained model weights (.pth file)
+    2. Initialize VideoDataset (YOLOv8n-based person cropping)
+    3. Perform forward inference on test set.
+    4. Apply sigmoid activation to obtain probabilities.
+    5. Apply decision threshold for binary classification
+    6. Compute evaluation metrics. 
+
+Configuration:
+
+    DEVICE: Automatically selects CUDA if available
+    BATCH_SIZE: Number of video clips per batch
+    TEST_DIR: Path to test manifest file
+    MODEL_PATH: Path to trained model checkpoint
+    THRESHOLD: Probabilities cutoff for positive class
+
+Input:
+    
+    Manifest file (e.g., manifest/test.txt)
+        Each line:
+            s3_uri label
+
+Output:
+    Prints:
+        - Precision 
+        - Recall
+        - F1 Score
+        - Confusion Matrix
+        - Detailed Classification Report
+
+Notes:
+    - Uses torch.no_grad() for memory-efficient inference.
+    - Outputs are passed through sigmoid since the model 
+      produces raw logits.
+    - Threshold tuning directly affects precision-recall tradeoff.
+    - No gradient updates are performed (evaluation mode only).
+"""
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 8
 TEST_DIR = "manifests/test.txt"

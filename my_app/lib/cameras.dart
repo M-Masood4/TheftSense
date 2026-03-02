@@ -11,6 +11,7 @@ import 'package:idb_shim/idb.dart';
 List<String> cameraNames = [];
 List<String> cameraDetails = [];
 List<XFile> thumbnails = [];
+ValueNotifier<int> camerasVersion = ValueNotifier<int>(0);
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -34,15 +35,12 @@ class _CameraPageState extends State<CameraPage> {
 
   CameraController? cameraController;
   int cameraSelectorIndex = 0;
-  //start: debug vars
+ 
   int attempt = 6;
   bool app_fresh_start = true;
-  //end: debug var
-
-  //List<String> cameraNames = [];
-  //List<String> cameraDetails = [];
-  //List<XFile> thumbnails = [];
+  
   int pressToDelete = 0;
+  String deleteInfo = "Delete Camera";
 
   bool userAddingCamera = false;
   bool userViewingCamera = false;
@@ -88,8 +86,6 @@ class _CameraPageState extends State<CameraPage> {
           )
         ),
         if (cameraNames.isEmpty) Center(child:Text('You have no cameras setup, why not start now?')),
-
-        //https://t13-users-videos.s3.eu-west-1.amazonaws.com/camera_clips/clip_2026-02-18_12-45-20.mp4
       ]
     );
   }
@@ -97,10 +93,24 @@ class _CameraPageState extends State<CameraPage> {
   /// called by createListView(), creates a 'tab' for
   /// each camera that is currently registered.
   Padding newCameraTab(String cameraName, String cameraDetails, int thumbnailsIndex) {
+    String cameraDetailsString;
+    int maxStringLength = 30;
+    if (cameraName.length + cameraDetails.length > maxStringLength) {
+      int n = maxStringLength - cameraName.length;
+      if (cameraDetails.length >= n) {
+        cameraDetailsString = '${cameraDetails.substring(0,n)}...';
+      } else {
+        cameraDetailsString = cameraDetails.substring(0,cameraDetails.length);
+      }
+    } else {
+      cameraDetailsString = cameraDetails;
+    }
+
     return Padding(
       padding:EdgeInsets.all(10),
-      child: FloatingActionButton(
-        onPressed: () {
+      child: InkWell(
+        
+        onTap: () {
           print('$thumbnailsIndex');
           switchInstance_viewCams(thumbnailsIndex); 
         }, 
@@ -108,9 +118,9 @@ class _CameraPageState extends State<CameraPage> {
           decoration: BoxDecoration(
             border: Border.all(color: Colors.green, width:2),
             borderRadius: BorderRadius.circular(12),
-            color: const Color.fromARGB(255, 196, 191, 191),
+            color: const Color.fromARGB(255, 237, 232, 232),
           ),
-          height: 75,
+          height: 100,
           child: Row(
             children: [
               SizedBox(width:25),
@@ -118,16 +128,18 @@ class _CameraPageState extends State<CameraPage> {
               Padding(
                 padding: EdgeInsets.all(10),
                 child: SizedBox(
-                  height:200, 
+                  height:100, 
                   child: Image.network(thumbnails[thumbnailsIndex].path),
                 ),
               ),
               SizedBox(width:25),
-              Icon(Icons.menu_book_sharp),
+              
+              Icon(Icons.menu_sharp, color: Colors.black),
               SizedBox(width:5),
-              Text(cameraName),
-              SizedBox(width: 50),
-              Text(cameraDetails)
+              Text(cameraName, style:TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis),
+              SizedBox(width: 25),
+              Text(cameraDetailsString, style:TextStyle(color: const Color.fromARGB(255, 130, 129, 129)), maxLines: 1, overflow: TextOverflow.ellipsis)
+              
             ]
           )
         )
@@ -159,6 +171,8 @@ class _CameraPageState extends State<CameraPage> {
       cameraDetails.add(map['camDetails']);
       thumbnails.add(XFile.fromData(map['thumbnail']));
     }
+
+    camerasVersion.value++;
     //});
     
     print('names $cameraNames');
@@ -304,20 +318,15 @@ class _CameraPageState extends State<CameraPage> {
             Container(
               decoration: BoxDecoration(
                 border:(Border.all(color:Colors.grey, width: 10))
-                
               ),
-              width: MediaQuery.of(context).size.width*0.83,
+              width: MediaQuery.of(context).size.width*0.80,
               height: MediaQuery.of(context).size.height*0.5,
               child:
-                Expanded(
-                  child:
-                    AspectRatio(
-                      aspectRatio: cameraController!.value.aspectRatio,
-                      child: CameraPreview(cameraController!),
-                    )
-                ),
+                AspectRatio(
+                  aspectRatio: cameraController!.value.aspectRatio,
+                  child: CameraPreview(cameraController!),
+                )
               )
-            
           ]
         )
     );
@@ -355,42 +364,6 @@ class _CameraPageState extends State<CameraPage> {
       switchInstance();
     }
   }
-
-  /*
-  Future<void> pickAndReadFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['txt'],
-      allowMultiple: false,
-    );
-
-    if (result == null) {
-      return;
-    }
-
-    PlatformFile file = result.files.first;
-
-    print('${file.name}');
-    print('${file.size} bytes');
-    print('${file.extension}');
-  }
-
-  Future<void> _saveFile() async {
-    try {
-      const String content = 'Hello';
-      Uint8List bytes = Uint8List.fromList(content.codeUnits);
-
-      await FileSaver.instance.saveFile(
-        name: 'test',
-        bytes: bytes,
-        ext: 'txt',
-        mimeType: MimeType.text,
-      );
-    } catch (e) {
-      print(e);
-    }
-  }
-  */
 
   /// create a database to store vital information
   /// that needs to persist across app instances.
@@ -443,7 +416,29 @@ class _CameraPageState extends State<CameraPage> {
     });
 
     await txn.completed;
+    camerasVersion.value++;
     return;
+  }
+
+  Future<void> _deleteFromDB(String dbCamname) async {
+    final factory = getIdbFactory();
+    final db = await factory!.open('setup_cameras');
+
+    final txn = db.transaction('setup_cameras', idbModeReadWrite);
+    final store = txn.objectStore('setup_cameras');
+
+    // Get index
+    final index = store.index('camName');
+
+    // Find the key (id) for this camName
+    final key = await index.getKey(dbCamname);
+
+    if (key != null) {
+      await store.delete(key);
+    }
+
+    await txn.completed;
+    camerasVersion.value++;
   }
 
   Future<XFile> addToThumbnails() async {
@@ -534,7 +529,7 @@ class _CameraPageState extends State<CameraPage> {
   }
   
   ListView viewingCameraTab() {
-    pressToDelete = 0;
+    //pressToDelete = 0;
     return ListView(
       scrollDirection: Axis.vertical,
       children: [
@@ -565,32 +560,56 @@ class _CameraPageState extends State<CameraPage> {
             ),
         ),
 
-        Padding(
-          padding:EdgeInsets.all(15), 
-          child: FloatingActionButton(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            onPressed: () {switchInstance_viewCams(0); },
-            child: Text('Cancel'),
-          )
-        ),
-        Padding(
-          padding:EdgeInsets.all(15), 
-          child: FloatingActionButton(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.black,
-            onPressed: () { 
-              pressToDelete += 1;
-              if (pressToDelete >= 2) {
-                pressToDelete = 0;
-                cameraNames.removeAt(cameraSelectorIndex);
-                cameraDetails.removeAt(cameraSelectorIndex);
-                thumbnails.removeAt(cameraSelectorIndex);
-                switchInstance_viewCams(0);
-              }
-            },
-            child: Text('Delete Camera (Press Twice)'),
-          )
+        Row(        
+          children: [
+            SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.425,
+              child:
+                OutlinedButton.icon(
+                  icon: Icon(Icons.exit_to_app_outlined),
+                  label: Text('Cancel'),
+                  onPressed: () { 
+                    switchInstance_viewCams(0);
+                    pressToDelete = 0;
+                    deleteInfo = "Delete Camera";
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey,
+                    side: BorderSide(color: Colors.black),
+                  ),
+                ),
+            ),
+            SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.425,
+              child: OutlinedButton.icon(
+                icon: Icon(Icons.delete),
+                label: Text(deleteInfo),
+                onPressed: () { 
+                  pressToDelete += 1;
+                  
+                  setState(() {
+                    if (pressToDelete == 1) {deleteInfo="Confirm Deletion";}
+                    else {deleteInfo="Delete Camera";}
+                  });
+
+                  if (pressToDelete >= 2) {
+                    pressToDelete = 0;
+                    _deleteFromDB(cameraNames[cameraSelectorIndex]);
+                    switchInstance_viewCams(0);
+                  }
+                  
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.red,
+                  side: BorderSide(color: Colors.black),
+                ),
+              ),
+            ),
+            SizedBox(width:MediaQuery.of(context).size.width * 0.05),
+          ]
         )
       ]
     );

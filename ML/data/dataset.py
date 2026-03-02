@@ -7,6 +7,8 @@ import torchvision.transforms as T
 import random
 from ultralytics import YOLO
 
+# region ============= Version 1 =====================================================
+
 # class VideoDataset(Dataset):
 
 """
@@ -103,8 +105,11 @@ from ultralytics import YOLO
 
 #         return torch.stack(frames)
 
+# endregion
+
 #---------------------------------------------------------------------------------------------------------------------------------------
     
+# region ============= Version 2 =====================================================
 
 # class VideoDataset(Dataset):
 
@@ -196,13 +201,54 @@ from ultralytics import YOLO
 #         frames = frames[::step][:self.num_frames]
 #         return frames
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# endregion
+
+#---------------------------------------------------------- FINAL VERSION ----------------------------------------------------------------------------------------------------------------
 
 class VideoDataset(Dataset):
 
     """
-    Changes: 
-        - YOLO Model, helper function and configuration added. 
+    A PyTorch Dataset for loading fixed-length video clips for binary shoplifting
+    classification with integrated YOLOv8n - based person cropping.
+
+    This dataset performs spatial preprocessing using a YOLOv8n object detector 
+    to extract the dominant person from each frame before passing the sequence to the
+    spatiotemporal model.
+
+    Functionality:
+        - Loads video paths and labels from a manifest file.
+        - Downloads video from S3 is required.
+        - Uniformly samples a fixed number of frames.
+        - Applies YOLOv8n person detection per frame.
+        - Crops first detected person (class 0)
+        - Resizes frames to 224x224
+        - Converts BGR -> RGB
+        - Normalizes to [0,1]
+        - Applies optional spatial and temporal augmentation.
+
+    Parameters:
+        manifest_path: str
+            Path to manifest file containing:
+            <s3_uri> <label> 
+        
+        num_frames: int
+            Number of frames sampled per video
+
+        augment: bool
+            Enables temporal and spatial augmentation
+
+    Returns:
+        frames: torch.Tensor
+            Shape (T, C, H, W)
+
+        label: torch.Tensor
+            Scalar float tensor (0.0 = normal, 1.0 = shoplifting)
+
+    Notes:
+        - YOLOv8n is initialized inside the dataset 
+        - If no person is detected, full frame is used.
+        - CUDA usage inside Dataset requires careful DataLoader configuration.
+
     """
 
     def crop_person(self, frame):
@@ -277,13 +323,7 @@ class VideoDataset(Dataset):
             if not ret:
                 break
 
-            # if count % step == 0:
-            #     frame = cv2.resize(frame, (224,224))
-            #     frame = frame[:, :, ::-1]
-            #     frame = torch.from_numpy(frame.copy()).permute(2,0,1).float() / 255.0
-            #     frames.append(frame)
-
-            # count += 1
+            
 
             if count % step == 0:
 
@@ -328,5 +368,3 @@ class VideoDataset(Dataset):
         step = max(1, len(frames) // self.num_frames)
         frames = frames[::step][:self.num_frames]
         return frames
-
-    

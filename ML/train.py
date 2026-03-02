@@ -12,6 +12,8 @@ import torch.nn as nn
 
 load_dotenv("keys.env")
 
+# region ===== Version 1 ==================================
+
 """
 This script trains an end-to-end spatiotemporal deep learning
 model for shoplifting detection using video clips. 
@@ -270,9 +272,11 @@ This is the main focus of our model, improving the F1 score.
 
 """
 
+# endregion
+
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
+# region ===== Version 2 ================================== 
 """
 Changes made to the model after results: 
 
@@ -477,7 +481,11 @@ This happens when:
 
 """
 
+# endregion
+
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# region ===== Version 3 ==================================
 
 """
 Changes made after above results:
@@ -677,8 +685,11 @@ around 0.65-0.70
 
 """
 
+# endregion
+
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+# region ==== Version 4 ===================================
 
 """
 Changes made after above results: 
@@ -880,7 +891,11 @@ The metrics are now more stabilized:
 
 """
 
+# endregion
+
 #------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# region ==== Version 5 ===================================
 
 """
 Changes made after above results:
@@ -1112,8 +1127,118 @@ Recall is 0.80-0.88 and FN is 20-40, means shoplifting classifications are more 
 
 """
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# endregion
 
+#------------------------------------------------------------------------ FINAL VERSION --------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+"""
+This script trains an end-to-end spatiotemporal deep learning
+model for shoplifting detection using short video clips.
+
+Model Architecture
+    The model combines:
+        - A CNN-based spatial encoder (EfficientNetV2 backbone)
+        - A Transformer-based temporal encoder
+        - A lightweight binary classifier head
+    
+Each video clip represents one training sample consisting of
+NUM_FRAMES sequential frames.
+
+Dataset & Preprocessing
+
+Data is loaded using a manifest-driven VideoDataset class.
+
+Each manifest file contains lines of:
+    <s3_uri> <label>
+
+The dataset performes detection-guided preprocessing using YOLOV8n:
+
+    - YOLOv8n is applied to each sampled frame.
+    - The first detected 'person' (class 0) is selected.
+    - The bounding box region is cropped.
+    - Frames are resized to 224x224
+    - Converted from BGR -> RGB
+    - Normalized to [0,1]
+
+If no person is detected, the full frame is used. 
+
+This approach reduces background noise and focuses the model on human-centric
+motion patterns. 
+
+Data augmentation (training only):
+
+    - Temporal frame skipping
+    - Temporal window swapping 
+    - Random horizontal flip
+    - Color jitter
+
+The dataset must be pre-split (train/val) to avoid data leakage
+
+Training Strategy 
+
+Two-phase training is employed:
+
+    Phase 1 (Frozen Backbone):
+        - Spatial backbone parameters are frozen.
+        - Only temporal encoder and classifier are trained.
+        - Higher learning rate used for newly initiated layers.
+
+    Phase 2 (Partial Fine-Tuning):
+        - Selected spatial backbone blocks are unfrozen.
+        - Differential learning rates applied.
+        - Optimizer is reinitialized for full fine-tuning.
+
+Loss Function
+
+Focal loss is used for binary classification:
+
+    - Addresses class imbalance.
+    - Down-weights easy examples.
+    - Focuses training on hard misclassified samples.
+
+Optimization
+
+    - AdamW optimizer with parameter groups
+    - Differential learning rates for backbone and head
+    - Mixed Precision Training (torch.amp.autocast + GradScaler)
+
+Evaluation Metrices
+
+During validation, the following are computed:
+
+    - True Positives (TP)
+    - False Positives (FP)
+    - False Negatives (FN)
+    - True Negatives (TN)
+
+Derived Metrics:
+
+    - Precision
+    - Recall
+    - F1-score
+
+Instead of a fixed threshold, the decision threshold is
+searched between 0.2 and 0.6 to maximize F1-score.
+
+Hardware Assumptions
+
+    - NVIDIA RTX 3090 GPU (or equivalent CUDA device)
+    - GPU recommended due to YOLOv8n inference inside Dataset
+    - Sufficient VRAM for batched video training
+
+Output
+
+    - Trained model weights saved as: 'shoplifting_model_YOLOv1.pth'
+
+Notes
+
+    - AWS S3 integration is handled inside the VideoDataset
+    - num_workers should be set carefully due to CUDA usage inside the Dataset
+      class. 
+    - YOLOv8n is used without identity tracking.
+    - Multi-person scenes may introduce minor identity inconsistencies. 
+
+"""
 
 class FocalLoss(nn.Module):
     def __init__(self, alpha=0.25, gamma=2.0, reduction='mean'):

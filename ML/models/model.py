@@ -3,9 +3,11 @@ from models.spatial import SpatialEncoder
 from models.temporal import TemporalTransformer
 import torch
 
-class ShopliftingModel(nn.Module):
+# region ============================== Version 1 ==================================
 
-    """
+# class ShopliftingModel(nn.Module):
+
+"""
     End-to-end spatiotemporal model for shoplifting detection.
 
     The model combines:
@@ -62,11 +64,49 @@ class ShopliftingModel(nn.Module):
     #     x = self.temporal(x)
     #     return self.classifier(x).squeeze(1)
 
-#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+# endregion
+
+#--------------------------------------------------------- FINAL VERSION ----------------------------------------------------------------------------------------------------------------------------------
+
+
+class ShopliftingModel(nn.Module):
+
     """
-    End-to-end spatiotemporal model with updated transformer and classifier.
+    End-to-end spatiotemporal neural network for binary
+    shoplifting classification from video clips.
+
+    Architecture:
+        1. SpatialEncoder
+            - CNN backbone (EfficientNetV2)
+            - Extracts per-frame spatial features
+
+        2. TemporalTransformer
+            - Transformer encoder
+            - Models temporal relationships across frames
+
+        3. Classifier Head
+            - Fully connected layers
+            - Outputs a single logit for binary classification
+
+    Input:
+        x: torch.Tensor
+            Shape (B, T, C, H, W)
+                B = batch size
+                T = number of frames
+                C = 3 (RGB)
+                H, W = spatial dimensions
+
+    Output:
+        logits: torch.Tensor
+            Shape (B,)
+            Raw logits (no sigmoid applied)
+
+    Notes:
+        - Designed for use with BCEWithLogitsLoss or FocalLoss (applied).
+        - Sigmoid activation should be applied during validation
+          for probability estimation.
     """
+
 
     def __init__(self):
         super().__init__()

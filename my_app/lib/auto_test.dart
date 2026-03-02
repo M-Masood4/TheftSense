@@ -5,28 +5,29 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'history.dart';
 
-Future<void> callApi() async {
-  /*
-  final response = await http.get(
-    Uri.parse('http://3.250.190.187:8000/run?name=Jackie'),
-  );
+/// callApi() calls the function in the flask app
+/// to upload a video to the S3 bucket and generate
+/// a url which is used as the id in the new incident.
+/// NOTE: Flask app must be running first, flutter web
+/// can't start flask on its own so manually run it
+/// first with: python py_gen_vid_url.py
+Future<List<String>> callApi() async {
+  
+  String user = "testUser";
+  String filePath = "lib/temp_folder/test_clip.mp4";
 
-  final data = jsonDecode(response.body);
-  print(data['result']);
-  */
+  try {
+    //final result = (await http.get(Uri.http('localhost:5000','/gen_url',{'user':user,'file_path':file_path},)));//.toString();
+    final result = (await http.get(Uri.http('localhost:5000','/fetch_incidents',{'user':user},)));
 
-  String result = (await http.get(Uri.parse('http://localhost:5000/gen_url'))).toString();
-
-  Incident test = Incident(
-    id: result,
-    timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-    cameraName: 'TEST CAMERA',
-    severity: IncidentSeverity.critical,
-    description: 'TEST INCIDENT',
-    reviewed: false,
-  );
-
-  print(test.id);
+    final List data = jsonDecode(result.body);
+    
+    return List<String>.from(data.skip(1));
+  
+  } catch (e) {
+    print(e);
+    return [];
+  }
 
 }
 
