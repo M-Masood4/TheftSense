@@ -49,6 +49,16 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    if (!_emailRegex.hasMatch(login)) {
+      _showMessage('Please enter a valid email address.');
+      return;
+    }
+
+    if (password.length < 8) {
+      _showMessage('Password must be at least 8 characters.');
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
     });

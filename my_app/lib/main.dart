@@ -1,6 +1,8 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'firebase_options.dart';
 import 'home.dart';
 import 'cameras.dart';
@@ -11,11 +13,19 @@ import 'landing.dart';
 List<CameraDescription> priv_cameras = [];
 List<CameraDescription> cameras = [];
 
+const bool _usePhoneTestMode = bool.fromEnvironment('USE_PHONE_TEST_MODE', defaultValue: false);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  if (kIsWeb) {
+    await FirebaseAuth.instance.setSettings(
+      appVerificationDisabledForTesting: _usePhoneTestMode,
+      forceRecaptchaFlow: !_usePhoneTestMode,
+    );
+  }
   //priv_cameras = await availableCameras();
   runApp(const MyApp());
 }

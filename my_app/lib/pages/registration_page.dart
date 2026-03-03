@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'two_fa_page.dart';
 import 'package:my_app/main.dart';
+import 'verify_email_page.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -31,13 +31,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
-  }
-
-  void _goToTwoFa() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const TwoFaPage()),
-    );
   }
 
   void _showMessage(String message) {
@@ -96,9 +89,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
         password: password,
       );
 
-      await credential.user?.sendEmailVerification();
+      final user = credential.user;
+      if (user == null) {
+        _showMessage('Registration failed. Please try again.');
+        return;
+      }
 
-      _showMessage('Check your email to confirm your account.');
+      await user.sendEmailVerification();
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const VerifyEmailPage()),
+      );
     } on FirebaseAuthException catch (error) {
       if (error.code == 'too-many-requests') {
         _cooldownUntil = DateTime.now().add(_cooldownDuration);
