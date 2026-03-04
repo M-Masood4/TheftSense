@@ -134,22 +134,42 @@ for key in video_keys:
         if not ret:
             break
 
-        label_width = int(width * 0.2)
-        label_height = int(height * 0.08)
-        font_scale = label_height / 50
-        thickness = max(1, label_height // 20)
-
-        cv2.rectangle(frame, (10,10), (10 + label_width, 10 + label_width), color, -1)
-        cv2.putText(frame, label_text, (20, 10 + int(label_height*0.4)), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0,0,0), thickness)
-        cv2.putText(frame, normal_text, (20, 10 + int(label_height*0.8)), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0,0,0), thickness)
-    
+        font_scale = 0.55
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        thickness = 1
+        
         label_text = f"Shoplifting: {prob*100:.1f}%"
         normal_text = f"Normal: {(1-prob)*100:.1f}%"
-        color = (0,0,255) if prob > THRESHOLD else (0,255,0)
-        cv2.rectangle(frame, (5,5), (220,50), color, -1)
-        cv2.putText(frame, label_text, (10,23), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
-        cv2.putText(frame, normal_text, (10,40), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)
-
+        
+        (size1, _) = cv2.getTextSize(label_text, font, font_scale, thickness)
+        (size2, _) = cv2.getTextSize(normal_text, font, font_scale, thickness)
+        
+        text_w = max(size1[0], size2[0])
+        text_h = size1[1] + size2[1]
+        
+        padding = 8
+        box_w = text_w + padding * 2
+        box_h = text_h + padding * 3
+        
+        x1 = frame.shape[1] - box_w - 15
+        y1 = 15
+        x2 = x1 + box_w
+        y2 = y1 + box_h
+        
+        color = (0, 0, 255) if prob > THRESHOLD else (0, 150, 0)
+        
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (x1,y1), (x2, y2), color, -1)
+        alpha = 0.6
+        frame = cv2.addWeighted(overlay, alpha, frame, 1-alpha, 0)
+        
+        cv2.putText(frame, label_text, (x1+padding, y1+padding+size1[1]), font, font_scale, (255, 255, 255), thickness)
+        
+        cv2.putText(frame, normal_text, (x1 + padding, y1 + padding + size1[1] + size2[1] + 5), font, font_scale, (255, 255, 255), thickness )
+        
+        
+        
+        
         final_writer.write(frame)
 
     cap.release()
@@ -159,9 +179,10 @@ for key in video_keys:
     Uploads th final annotated vidoe to the OUTPUT_BUCKET under 'videos/' prefix, 
     appending '_labeled' to the filename. 
     """
-
+    os.system(f"ffmpeg -y -i {local_final} -c:v libx264 -preset fast -crf 23 {local_final}_fixed.mp4")
+    UPLOAD_FILE = f"{local_final}_fixed.mp4"
     output_key = f"{OUTPUT_BUCKET}/{filename.replace('.mp4', '_labeled.mp4')}"
-    s3.upload_file(local_final, OUTPUT_BUCKET, f"videos/{filename.replace('.mp4', '_labeled.mp4')}")
+    s3.upload_file(UPLOAD_FILE, OUTPUT_BUCKET, f"videos/{filename.replace('.mp4', '_labeled.mp4')}", ExtraArgs = {"ContentType": "video/mp4"})
     print(f"Uploaded annotated video to S3: videos/{filename.replace('.mp4', '_labeled.mp4')}")
         
 
