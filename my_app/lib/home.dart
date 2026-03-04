@@ -56,10 +56,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     
-    Future.delayed(Duration(milliseconds: 1000), () {
+    Future.delayed(Duration(milliseconds: 2000), () {
       if (listIncidents.isNotEmpty && mounted) {
-        setState(() {_incidents = listIncidents;});
+        setState(() {_incidents = List.from(listIncidents);});
       }
+
     });
   }
 
@@ -537,7 +538,19 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.check),
                         label: const Text('Mark As Shoplifting'),
                         onPressed: () async {
-                          _incidents!.removeAt(currentlyReviewingHome);
+                          setState(() {
+                            final currentId = _incidents![currentlyReviewingHome].hidden_id;
+                            
+                            final index = listIncidents.indexWhere((i) => i.hidden_id == currentId);
+                            
+                            if (index != -1) {
+                              listIncidents[index].severity = IncidentSeverity.critical;
+                              listIncidents[index].reviewed = true;
+                            }
+
+                            _incidents!.removeAt(currentlyReviewingHome);
+                          });
+
                           await _controller!.dispose();
                           setState(() {
                             playingVideo = false;
@@ -556,7 +569,20 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.no_accounts),
                         label: const Text('Mark As False Alarm'),
                         onPressed: () async {
-                          _incidents!.removeAt(currentlyReviewingHome);
+                          
+                          setState(() {
+                            final currentId = _incidents![currentlyReviewingHome].hidden_id;
+                            
+                            final index = listIncidents.indexWhere((i) => i.hidden_id == currentId);
+                            
+                            if (index != -1) {
+                              listIncidents[index].severity = IncidentSeverity.low;
+                              listIncidents[index].reviewed = true;
+                            }
+
+                            _incidents!.removeAt(currentlyReviewingHome);
+                          });
+
                           await _controller!.dispose();
                           setState(() {
                             playingVideo = false;
@@ -581,7 +607,20 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.exit_to_app_sharp),
                         label: const Text('Close Footage'),
                         onPressed: () async {
-                          _incidents!.removeAt(currentlyReviewingHome);
+                          
+                          setState(() {
+                            final currentId = _incidents![currentlyReviewingHome].hidden_id;
+                            
+                            final index = listIncidents.indexWhere((i) => i.hidden_id == currentId);
+                            
+                            if (index != -1) {
+                              listIncidents[index].severity = IncidentSeverity.medium;
+                              listIncidents[index].reviewed = true;
+                            }
+
+                            _incidents!.removeAt(currentlyReviewingHome);
+                          });
+
                           await _controller!.dispose();
                           setState(() {
                             playingVideo = false;

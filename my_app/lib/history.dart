@@ -271,6 +271,13 @@ class _HistoryPageState extends State<HistoryPage>  {
                 const Spacer(),
                 Builder(
                   builder: (context) => IconButton(
+                    tooltip: 'Refresh Incidents',
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () => setState((){}),
+                  ),
+                ),
+                Builder(
+                  builder: (context) => IconButton(
                     tooltip: 'Open filters',
                     icon: const Icon(Icons.tune),
                     onPressed: () => Scaffold.of(context).openEndDrawer(),
