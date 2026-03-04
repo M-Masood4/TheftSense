@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "93686580855",
-    "project_id": "theftsense",
-    "storage_bucket": "theftsense.firebasestorage.app"
+    "project_number": "825353246981",
+    "project_id": "group-project-666b6",
+    "storage_bucket": "group-project-666b6.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:93686580855:android:792630936526c87010e872",
+        "mobilesdk_app_id": "1:825353246981:android:9b7ae4a8e967a056353f6c",
         "android_client_info": {
           "package_name": "com.example.my_app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBdgCUYiC0-eIrTFnoAOF_z7vGMpH7xS84"
+          "current_key": "AIzaSyATVxy2JZtwxfbRt7HdIccCDXz6e86vFtI"
         }
       ],
       "services": {

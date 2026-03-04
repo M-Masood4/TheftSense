@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+import 'pages/registration_page.dart';
+import 'pages/login_page.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -9,17 +10,18 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  String message = 'You Are Logged Out';
+
+  void _signUp() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RegistrationPage()),
+    );
+  }
 
   void _logIn() {
-    setState(() { 
-      message = 'You Are Logged In';
-    });
-    
-    // Navigate to the main app
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MyHomePage(title: 'TheftSense\u2122')),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 
@@ -39,16 +41,32 @@ class _LandingPageState extends State<LandingPage> {
               height:120,
               child: Image.asset('lib/materials/theftSenseIcon.png', width:100, height:100)
             ),
-            SizedBox(height:100),
-            const Text('Welcome', style: TextStyle(fontSize:30)),
-            Text(message, style: TextStyle(fontSize:30)),
+            SizedBox(height:50),
+            const Text('Welcome to TheftSense\u2122', style: TextStyle(fontSize:30)),
+            SizedBox(height: 80),
             SizedBox(
-              width: 80,
-              height: 40,
-              child: FloatingActionButton(
+              width: 200,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _signUp,
+                child: const Text('Sign Up'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: 200,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: _logIn,
-                tooltip: 'Log In',
-                child: const Text('Log In'),
+                child: const Text('Sign In'),
               ),
             ),
           ]
