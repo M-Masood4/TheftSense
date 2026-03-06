@@ -5,6 +5,32 @@ import numpy as np
 import boto3
 from ultralytics import YOLO
 from models.model import ShopliftingModel
+import requests
+
+MAILGUN_API_KEY = "0f5a358f0fe40e385918966d3c1dc7bf-82cf32bf-e53790a2"
+MAILGUN_DOMAIN = "sandbox242cfa1d3a4b4e6e9b9de89475441871.mailgun.org"
+ALERT_EMAIL = "1233475523@umail.ucc.ie"
+
+def send_alert(prob):
+
+    """
+    Sends an alert email when shoplifting probability crosses threshold. 
+    Using Mailgun HTTP API
+    """
+
+    response = requests.post(
+        f"https://api.mailgun.net/v3/{MAILGUN_DOMAIN}/messages",
+        auth=("api", MAILGUN_API_KEY),
+        data={
+            "from": f"Shoplifting Detection <alert@{MAILGUN_DOMAIN}>",
+            "to": [ALERT_EMAIL],
+            "subject": "SHOPLIFTING DETECTED",
+            "text": f"Shoplifting detected with probability {prob*100:.2f}%.\n\n Immediate attention required!!"
+        }
+        
+    )
+
+    print("Mailgun Response: ", response.status_code)
 
 DEVICE = torch.device("cpu")
 NUM_FRAMES = 50
@@ -140,6 +166,10 @@ if frames_for_model:
         prob = torch.sigmoid(output).item()
 
 print(f"Shoplifting Probability: {prob:.4f}")
+
+if prob > 0.40:
+    print("Shoplifting Detected. Sending email alert....")
+    send_alert_email(prob)
 
 """
 Overlays shoplifting/normal probability labels on the video.
