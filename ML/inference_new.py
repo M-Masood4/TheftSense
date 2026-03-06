@@ -6,10 +6,13 @@ import boto3
 from ultralytics import YOLO
 from models.model import ShopliftingModel
 import requests
+import dotenv
 
-MAILGUN_API_KEY = "0f5a358f0fe40e385918966d3c1dc7bf-82cf32bf-e53790a2"
-MAILGUN_DOMAIN = "sandbox242cfa1d3a4b4e6e9b9de89475441871.mailgun.org"
-ALERT_EMAIL = "1233475523@umail.ucc.ie"
+load_dotenv("keys.env")
+
+MAILGUN_API_KEY = os.getenv("MAILGUN_API")
+MAILGUN_DOMAIN = os.getenv("MAILGUN_DOMAIN")
+ALERT_EMAIL = os.getenv("EMAIL")
 
 def send_alert(prob):
 
