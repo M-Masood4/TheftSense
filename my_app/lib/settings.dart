@@ -5,6 +5,7 @@ import 'package:idb_shim/idb_browser.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'cameras.dart';
 import 'pages/change_password_page.dart';
+import 'pages/delete_account_page.dart';
 import 'services/notification_service.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -393,6 +394,26 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       icon: const Icon(Icons.lock_reset),
                       label: const Text('Change Password'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DeleteAccountPage(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      icon: const Icon(Icons.person_remove),
+                      label: const Text('Delete Account'),
                     ),
                   ),
                 ],
