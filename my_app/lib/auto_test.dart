@@ -18,8 +18,12 @@ Future<List<String>> callApi() async {
     final result = (await http.get(Uri.http('localhost:5000','/fetch_incidents',{'user':user},)));
 
     final List data = jsonDecode(result.body);
-    
-    return List<String>.from(data.skip(1));
+
+    if (data.length <= 2) {
+      return List<String>.from(data.skip(1));
+    } else {
+      return List<String>.from(data.skip(0));
+    }
   
   } catch (e) {
     print(e);

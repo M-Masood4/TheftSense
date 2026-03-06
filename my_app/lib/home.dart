@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> {
     
     Future.delayed(Duration(milliseconds: 2000), () {
       if (listIncidents.isNotEmpty && mounted) {
-        setState(() {_incidents = List.from(listIncidents);});
+        setState(() {_incidents = List.from(listIncidents.take(3));});
       }
 
     });
@@ -397,7 +397,8 @@ class _HomePageState extends State<HomePage> {
                         onTap: () => _showIncidentDetails(incident),
                       ),
                     ),
-                  ) else Text("You're All Caught Up!"),
+                  ) else if (_incidents!.length < listIncidents.length) Text('See More Recent Incidents.')
+                  else Text("You're All Caught Up!"),
                   
                   const SizedBox(height: 8),
                   const Text('Dashboard', style: sectionTitleStyle),

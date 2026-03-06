@@ -38,8 +38,8 @@ class _LandingPageState extends State<LandingPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              height:120,
-              child: Image.asset('lib/materials/theftSenseIcon.png', width:100, height:100)
+              height:200,
+              child: Image.asset('lib/materials/theftSenseIcon.png', width:500, height:500)
             ),
             SizedBox(height:50),
             const Text('Welcome to TheftSense\u2122', style: TextStyle(fontSize:30)),
