@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:idb_shim/idb_browser.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'cameras.dart';
+import 'pages/change_password_page.dart';
 import 'services/notification_service.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -17,17 +18,11 @@ class _SettingsPageState extends State<SettingsPage> {
   bool pushNotificationsEnabled = true;
   bool _isRequestingPermission = false;
   String? _fcmToken;
-  String _permissionStatus = 'unknown';
 
   final NotificationService _notificationService = NotificationService();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
 
   String? _selectedCameraToDelete;
   String _statusMessage = '';
-  bool _isEditingAccount = false;
 
   @override
   void initState() {
@@ -43,7 +38,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
       if (mounted) {
         setState(() {
-          _permissionStatus = settings.authorizationStatus.toString();
           _fcmToken = token ?? _notificationService.fcmToken;
           pushNotificationsEnabled =
               settings.authorizationStatus == AuthorizationStatus.authorized ||
@@ -119,9 +113,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -144,7 +135,6 @@ class _SettingsPageState extends State<SettingsPage> {
       final store = txn.objectStore('settings');
 
       final notifSetting = await store.getObject('pushNotifications');
-      final emailSetting = await store.getObject('email');
 
       await txn.completed;
 
@@ -152,9 +142,6 @@ class _SettingsPageState extends State<SettingsPage> {
         setState(() {
           if (notifSetting != null) {
             pushNotificationsEnabled = (notifSetting as Map)['value'] ?? true;
-          }
-          if (emailSetting != null) {
-            _emailController.text = (emailSetting as Map)['value'] ?? '';
           }
         });
       }
@@ -184,7 +171,6 @@ class _SettingsPageState extends State<SettingsPage> {
         'key': 'pushNotifications',
         'value': pushNotificationsEnabled,
       });
-      await store.put({'key': 'email', 'value': _emailController.text});
 
       await txn.completed;
 
@@ -201,31 +187,6 @@ class _SettingsPageState extends State<SettingsPage> {
         });
       }
     }
-  }
-
-  Future<void> _updateAccountDetails() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() {
-        _statusMessage = 'Passwords do not match';
-      });
-      return;
-    }
-
-    if (_emailController.text.isEmpty) {
-      setState(() {
-        _statusMessage = 'Email is required';
-      });
-      return;
-    }
-
-    await _saveSettings();
-
-    setState(() {
-      _isEditingAccount = false;
-      _passwordController.clear();
-      _confirmPasswordController.clear();
-      _statusMessage = 'Account details updated!';
-    });
   }
 
   Future<void> _deleteCamera(String cameraName) async {
@@ -401,83 +362,39 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const SizedBox(height: 16),
 
-          // Account Details Section
+          // Change Password Section
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Account Details',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          _isEditingAccount ? Icons.close : Icons.edit,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isEditingAccount = !_isEditingAccount;
-                            if (!_isEditingAccount) {
-                              _passwordController.clear();
-                              _confirmPasswordController.clear();
-                            }
-                          });
-                        },
-                      ),
-                    ],
+                  const Text(
+                    'Account',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: _emailController,
-                    enabled: _isEditingAccount,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ChangePasswordPage(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      icon: const Icon(Icons.lock_reset),
+                      label: const Text('Change Password'),
                     ),
-                    keyboardType: TextInputType.emailAddress,
                   ),
-                  if (_isEditingAccount) ...[
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'New Password',
-                        prefixIcon: Icon(Icons.lock),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _confirmPasswordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Confirm Password',
-                        prefixIcon: Icon(Icons.lock_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _updateAccountDetails,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: const Text('Save Account Details'),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),

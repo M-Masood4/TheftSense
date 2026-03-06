@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
-  const ForgotPasswordPage({super.key});
+  const ForgotPasswordPage({
+    super.key,
+    this.pageTitle = 'Forgot Password',
+  });
+
+  final String pageTitle;
 
   @override
   State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
@@ -84,7 +89,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Forgot Password'),
+        title: Text(widget.pageTitle),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
