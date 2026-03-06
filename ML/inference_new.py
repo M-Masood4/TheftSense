@@ -39,8 +39,29 @@ Output: scaler probability (after sigmoid) of shoplifting
 """
 
 resp = s3.list_objects_v2(Bucket = INPUT_BUCKET, Prefix = INPUT_PREFIX)
-video_keys = [obj['Key'] for obj in resp.get('Contents', []) if obj['Key'].lower().endswith('.mp4')]
-print(f"Found {len(video_keys)} videos to process")
+videos = [
+    obj for obj in resp.get("Contents", [])
+    if obj["Key"].lower().endswith(".mp4")
+]
+
+if not videos:
+    print("No videos found in bucket.")
+    exit()
+
+videos.sort(key=lambda x: x["LastModified"], reverse=True)
+latest_video = videos[0]["Key"]
+print(f"Latest video detected: {latest_video}")
+
+key = latest_video
+filename = os.path.basename(key)
+
+local_input = f"tmp/{filename}"
+local_intermediate = f"tmp/intermediate_{filename}"
+local_final = f"tmp/final_{filename}"
+
+print(f"\nProcessing: {key}")
+s3.download_file(INPUT_BUCKET, key, local_input)
+
 
 for key in video_keys:
     filename = os.path.basename(key)
