@@ -6,13 +6,13 @@ import boto3
 from ultralytics import YOLO
 from models.model import ShopliftingModel
 import requests
-import dotenv
+from dotenv import load_dotenv
 
 load_dotenv("keys.env")
 
-MAILGUN_API_KEY = os.getenv("MAILGUN_API")
+MAILGUN_API = os.getenv("MAILGUN_API")
 MAILGUN_DOMAIN = os.getenv("MAILGUN_DOMAIN")
-ALERT_EMAIL = os.getenv("EMAIL")
+EMAIL = os.getenv("EMAIL")
 
 def send_alert(prob):
 
@@ -23,10 +23,10 @@ def send_alert(prob):
 
     response = requests.post(
         f"https://api.mailgun.net/v3/{MAILGUN_DOMAIN}/messages",
-        auth=("api", MAILGUN_API_KEY),
+        auth=("api", MAILGUN_API),
         data={
-            "from": f"Shoplifting Detection <alert@{MAILGUN_DOMAIN}>",
-            "to": [ALERT_EMAIL],
+            "from": f"Shoplifting Detection <postmaster@{MAILGUN_DOMAIN}>",
+            "to": [EMAIL],
             "subject": "SHOPLIFTING DETECTED",
             "text": f"Shoplifting detected with probability {prob*100:.2f}%.\n\n Immediate attention required!!"
         }
@@ -172,7 +172,7 @@ print(f"Shoplifting Probability: {prob:.4f}")
 
 if prob > 0.40:
     print("Shoplifting Detected. Sending email alert....")
-    send_alert_email(prob)
+    send_alert(prob)
 
 """
 Overlays shoplifting/normal probability labels on the video.
