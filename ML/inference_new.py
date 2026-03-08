@@ -34,6 +34,7 @@ def send_alert(prob):
     )
 
     print("Mailgun Response: ", response.status_code)
+    print(response.text)
 
 DEVICE = torch.device("cpu")
 NUM_FRAMES = 50
