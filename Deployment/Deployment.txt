@@ -1,0 +1,1 @@
+This folder contains files/folder used on raspberry pi 5 for deployment. 
