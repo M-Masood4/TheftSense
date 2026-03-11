@@ -230,7 +230,7 @@ cap.release()
 final_writer.release()
 
 """
-Uploads th final annotated vidoe to the OUTPUT_BUCKET under 'videos/' prefix, 
+Uploads the final annotated video to the OUTPUT_BUCKET under 'videos/' prefix, 
 appending '_labeled' to the filename. 
 """
 os.system(f"ffmpeg -y -i {local_final} -c:v libx264 -preset fast -crf 23 {local_final}_fixed.mp4")
