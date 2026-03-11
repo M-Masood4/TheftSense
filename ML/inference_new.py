@@ -171,7 +171,7 @@ if frames_for_model:
 
 print(f"Shoplifting Probability: {prob:.4f}")
 
-if prob > 0.40:
+if prob > 0.60:
     print("Shoplifting Detected. Sending email alert....")
     send_alert(prob)
 
