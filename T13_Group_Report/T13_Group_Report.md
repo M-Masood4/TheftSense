@@ -66,7 +66,7 @@ This paper follows a 2D CNN + RNN hybrid architecture. Video clips are decompose
 
 **Results:**
 
-![Fig 2: Model Diagram](images/image24.png)
+![Fig 2: Model Diagram](images/table3_results.png)
 
 The results highlight several important observations.
 
@@ -313,6 +313,13 @@ The dataset is divided into three subsets:
 
 To simplify data management and enable scalable training, all videos are stored in Amazon S3 cloud storage. Instead of storing raw file paths, the dataset loader uses manifest files, where each line specifies the video location and label.
 
+Example Manifest Entry:
+
+![Manifest](images/manifest.png)
+
+This structure allows the training pipeline to efficiently retrieve video data directly from cloud storage
+
+
 #### Video Preprocessing and Frame Sampling
 
 Surveillance videos typically contain hundreds or thousands of frames, many of which may not contain meaningful information for behavioural analysis. To standardize the input for the neural network, each video is converted into a fixed-length sequence of **50 frames**.
@@ -483,7 +490,7 @@ The confusion matrix provides the foundation for computing the evaluation metric
 
 Accuracy measures the overall proportion of correctly classified samples among all predictions:
 
-$$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}$$
+![Accuracy](images/accuracy.png)
 
 Accuracy provides a general overview of how often the model makes correct predictions. However, in anomaly detection, accuracy alone can be misleading. For example, if most videos contain normal behaviour, a model that predicts "normal" for every sample may achieve high accuracy while completely failing to detect shoplifting incidents. Therefore, additional metrics such as precision and recall are necessary.
 
@@ -491,7 +498,7 @@ Accuracy provides a general overview of how often the model makes correct predic
 
 Precision measures the proportion of predicted shoplifting cases that are correct:
 
-$$\text{Precision} = \frac{TP}{TP + FP}$$
+![precision](images/precision.png)
 
 High precision means that when the model raises an alert, it is likely to be correct. Precision is particularly important in surveillance systems because false alarms can cause unnecessary security responses. A model with low precision would frequently misclassify normal behaviour as shoplifting, leading to excessive alerts and reduced trust in the system.
 
@@ -499,7 +506,7 @@ High precision means that when the model raises an alert, it is likely to be cor
 
 Recall measures the proportion of actual shoplifting incidents that the model successfully detects:
 
-$$\text{Recall} = \frac{TP}{TP + FN}$$
+![recall](images/recall.png)
 
 High recall indicates that the model can detect most instances of shoplifting behaviour. Recall is critical in security applications because missing a shoplifting event may result in financial loss for the store. A model with low recall would fail to identify many suspicious events. However, optimizing recall alone can lead to excessive false alarms. Therefore, a balance between recall and precision must be maintained.
 
@@ -507,7 +514,7 @@ High recall indicates that the model can detect most instances of shoplifting be
 
 The F1 Score is the harmonic mean of precision and recall. It provides a single metric that balances both false positives and false negatives:
 
-$$F_1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$$
+![f1](images/f1.png)
 
 The harmonic mean ensures that both precision and recall must be high for the F1 score to be high. If either precision or recall is low, the F1 score will decrease significantly. The F1 score is particularly useful in imbalanced classification problems, where one class appears more frequently than the other. In the case of shoplifting detection, normal behaviour typically appears far more often than suspicious activity. For this reason, the F1 score is used as the **primary metric for model selection** in this project.
 
@@ -517,7 +524,7 @@ The model outputs a probability value between 0 and 1 representing the likelihoo
 
 During validation, different probability thresholds were evaluated within the range:
 
-$$0.2 \leq \text{threshold} \leq 0.6$$
+0.2 <= threshold <= 0.6
 
 For each threshold value, precision, recall and F1 score were calculated. The threshold that produced the most balanced scores (**0.42**) on the validation dataset was selected as the final decision threshold.
 
@@ -547,16 +554,11 @@ Overall, Grad-CAM has been an effective tool for making the proposed model expla
 
 *Grad Cam Examples*
 
-![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_0.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_1.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_2.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_3.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_5.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_0.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_1.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_2.png) ! 
+![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_0.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_1.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_2.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_3.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_5.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_0.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_1.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_2.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_3.png)
  
 
- 
-
-
-
-
-
-
+Another key benefit of Grad-CAM is its usefulness in model debugging and validation. The highlighted regions correspond to the correct objects or actions in the frame; it provides confidence that the model is learning relevant visual features. 
+Overall, Grad-CAM has been an effective tool for making the proposed model explainable and trustworthy. By visually illustrating how it arrives at its prediction, it bridges the gap between complex algorithms and human understanding, which has been particularly valuable in our system.
 
 
 #### Test Results
@@ -565,12 +567,13 @@ The final trained model was evaluated on a test dataset containing **474 video s
 
 The model achieves **74% accuracy** with **73.5% recall** on shoplifting detection, prioritizing theft detection over false alarms. The **F1 score of 0.69** indicates balanced performance given behavioural ambiguity in real-world retail scenarios.
 
-![Test Results](images/results.png) 
-
 *Test Results*
+![Test Results](images/results.png) 
 
 
 These results demonstrate that combining person detection, spatial feature extraction, and temporal modelling provides an effective framework for automated shoplifting detection in surveillance videos.
+
+The model achieves 74% accuracy with 73.5% recall on shoplifting detection, prioritizing theft detection over false alarms. The F1 score of 0.69 indicates balanced performance given behavioural ambiguity in real-world retail scenarios.
 
 ### 2.4. Flutter
 
@@ -590,10 +593,11 @@ Aside from the benefits of our chosen language, let's talk about the front-end a
 The core problem was deciding how the data would flow. A user story goes as follows: *"As a shop owner, I want to connect my camera to this app so that it automatically notifies me when a shoplifting incident occurs."*
 
 *Level 0: Dataflow Diagram*
+
 ![Grad-Cam 1](images/dataflow.png) 
 
 
-When the user first logs into the app, they will be greeted by an empty dashboard, so they should navigate to the 'cameras' page to connect a camera to the app. Once the camera is connected, a process begins in the background where every 5 seconds a video clip is taken and processed (which we will discuss in implementation details), then when the user navigates to the 'history' page, the app will download incidents from the S3 bucket where the processed videos are stored for review.
+Demonstrated by the dataflow diagram above, when the user first logs into the app, they will be greeted by an empty dashboard, so they should navigate to the 'cameras' page to connect a camera to the app. Once the camera is connected, a process begins in the background where every 5 seconds a video clip is taken and processed (which we will discuss in implementation details), then when the user navigates to the 'history' page, the app will download incidents from the S3 bucket where the processed videos are stored for review.
 
 The user story defined a minimum viable product for the system, but we also planned to include additional quality of life features such as a dashboard summarizing recent incidents, a filter tab in 'history' to group incidents by severity or time of occurrence, and a notification system for which we would need Google Firebase.
 
@@ -668,7 +672,7 @@ There were two instances within our application where this mechanism was impleme
 await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 ```
 
-To simplify the login process and reduce password management overhead, the application supports authentication using **Google Sign-In**. Google Sign-In allows users to authenticate using their existing Google account. The authentication flow involves redirecting the user to Google's identity provider, where they grant permission for the application to access basic profile information. Once authenticated, Firebase securely links the Google account with the Firebase user identity and issues the appropriate authentication token.
+To simplify the login process and reduce password management overhead, the application supports authentication using **Google Sign-In**. Google Sign-In allows users to authenticate using their existing Google account. The authentication flow involves redirecting the user to Google's identity provider, where they grant permission for the application to access basic profile information. Once authenticated, Firebase securely links the Google account with the Firebase user identity and issues the appropriate authentication token. This method improves user convenience while leveraging Google’s secure authentication infrastructure.
 
 ```dart
 final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
@@ -817,16 +821,16 @@ The model processes the sequence and produces a single scalar output value, repr
 
 A sigmoid activation function converts this value into a probability between 0 and 1:
 
-$$P(\text{shoplifting}) = \sigma(x)$$
+P(shoplifting) = *o*(*x*)
 
 Where:
 
-- $x$ is the model output logit
-- $\sigma$ is the sigmoid function
+- *x* is the model output logic
+- *o* is the sigmoid function
 
 If the probability exceeds the predefined threshold:
 
-$$P(\text{shoplifting}) > 0.60$$
+P(shoplifting) > 0.60
 
 The system classifies the video as containing shoplifting behaviour.
 
@@ -860,6 +864,8 @@ The overlay colour indicates the predicted state:
 - 🟢 **Green** – normal activity
 
 The annotation box is dynamically scaled relative to the video resolution to ensure that it does not obstruct a large portion of the frame.
+
+This provides a clear visual explanation of the model’s output.
 
 #### Output Video Generation and Upload
 
