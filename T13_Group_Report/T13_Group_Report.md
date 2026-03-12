@@ -510,11 +510,28 @@ Another key benefit of Grad-CAM is its usefulness in model debugging and validat
 
 Overall, Grad-CAM has been an effective tool for making the proposed model explainable and trustworthy. By visually illustrating how it arrives at its prediction, it bridges the gap between complex algorithms and human understanding, which has been particularly valuable in our system.
 
+![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_0.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_1.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_2.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_3.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_5.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_0.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_1.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip2_2.png) ![Grad-Cam 1](images/gradcam_YOLO_frame_clip1_3.png) 
+ 
+
+ 
+
+
+
+
+
+
+*Grad Cam Examples*
+
 #### Test Results
 
 The final trained model was evaluated on a test dataset containing **474 video samples**.
 
 The model achieves **74% accuracy** with **73.5% recall** on shoplifting detection, prioritizing theft detection over false alarms. The **F1 score of 0.69** indicates balanced performance given behavioural ambiguity in real-world retail scenarios.
+
+![Test Results](images/results.png) 
+
+*Test Results*
+
 
 These results demonstrate that combining person detection, spatial feature extraction, and temporal modelling provides an effective framework for automated shoplifting detection in surveillance videos.
 
@@ -534,6 +551,11 @@ tells the compiler that the `VideoPlayerController` can be null (using `?`), and
 Aside from the benefits of our chosen language, let's talk about the front-end and how various components were designed to make the user experience as smooth as possible. Firstly, the app is split into 4 major pages — **Home**, **Cameras**, **History**, and **Settings** — with each 'page' owning a separate Dart file for modularization to simplify complexity and improve maintainability.
 
 The core problem was deciding how the data would flow. A user story goes as follows: _"As a shop owner, I want to connect my camera to this app so that it automatically notifies me when a shoplifting incident occurs."_
+
+![Grad-Cam 1](images/dataflow.png) 
+
+*Level 0: Dataflow Diagram*
+
 
 When the user first logs into the app, they will be greeted by an empty dashboard, so they should navigate to the 'cameras' page to connect a camera to the app. Once the camera is connected, a process begins in the background where every 5 seconds a video clip is taken and processed (which we will discuss in implementation details), then when the user navigates to the 'history' page, the app will download incidents from the S3 bucket where the processed videos are stored for review.
 
@@ -630,6 +652,11 @@ await user.delete().timeout(const Duration(seconds: 15));
 ```
 
 After re-authentication is complete, and the confirm deletion button is pressed, the code above runs, before redirecting the user back to the landing page, with a snack bar saying 'Account deleted'. On the Firebase project site, the user's authentication record has been entirely removed from among the verified users.
+
+For clarity, here is a data flow diagram for user registration and email verification to show how the main process functions:
+
+![Dataflow 2](images/userflow.png) 
+
 
 ---
 
@@ -819,6 +846,21 @@ The complete deployment pipeline operates as follows:
 
 This architecture enables an automated surveillance pipeline capable of detecting suspicious retail behaviour and notifying security personnel in near real-time.
 
+![Grad-Cam 1](images/processing_system.png) 
+
+
+### Alternate Model Tested
+
+During the model selection phase of this project, another architecture was evaluated and fine-tuned to determine the most effective approach for detecting shoplifting behaviour in video footage. The primary alternative model tested consists of EfficientNetV2 combined with a Temporal Transformer, with the feature extractor initialized using weights derived from ResNet-50. 
+
+In this architecture, EfficientNetV2 was used as the core visual feature extractor. Each frame of the input video was processed by the network to identify important visual patterns such as objects, movements, and interactions occurring within the scene. Using weights pretrained from ResNet-50 allowed the model to begin with a strong understanding of common visual features, which helped accelerate training and improve generalization when working with a limited dataset. 
+
+Once visual features were extracted from individual frames, a Temporal Transformer was applied to analyse how these features evolved over time. Shoplifting behaviour typically involves a sequence of actions rather than a single isolated frame. The Temporal Transformer therefore examined the relationships between multiple frames in the video, enabling the model to capture patterns such as suspicious hand movements, concealment actions, or unusual behaviour near store shelves.
+
+Although this architecture demonstrated the ability to learn meaningful temporal patterns, it relied solely on full-frame analysis of the video. As a result, the model had to process large amounts of visual information that was not directly relevant to the behaviour being analysed. This increased computational overhead and sometimes reduced the model’s ability to focus specifically on individuals and objects of interest.
+
+After comparative evaluation, this approach was not selected as the final model for the project. Instead, the final system incorporated **YOLOv8n alongside EfficientNetV2 and the Temporal Transformer. The addition of YOLOv8n allowed the system to first detect and isolate relevant objects (such as people and products) before behavioural analysis was performed. This improved efficiency and helped the model concentrate on the most relevant parts of the scene, resulting in better overall performance for the shoplifting detection task.
+
 ### 3.3. The History Page
 
 Using the API calls discussed previously we can now access the marked videos that are stored in the S3 bucket. However, maintaining fast response times is essential and downloading possibly 100s of megabytes of videos every time you load the history page would introduce unnecessary latency. Instead, the AWS SDK lets us generate a **presigned URL**, which lets the user play the video in their browser, improving performance.
@@ -866,6 +908,10 @@ for (String url in urls) {
 
 Incidents are assigned different severity levels in the app. **High** for an unreviewed incident, **Critical** for a 'true positive', **Low** for a 'false positive', and **Medium** if the user reviews an incident but can't decide whether shoplifting has occurred. The list of incidents are then assigned as a child of a `ListView` widget, which displays a clean, scrollable list in the app.
 
+![App 1](images/app1.png) ![App 2](images/app2.png) 
+
+
+
 ---
 
 ## 4. Challenges Faced & Lessons Learned
@@ -890,7 +936,9 @@ That's why AWS Simple Storage Services (S3) was our first choice for cloud stora
 
 As this project represented the first time working with Firebase, important lessons were learned during the implementation of the authentication system. Unlike traditional backend development, where authentication logic is typically implemented directly on a server, Firebase provides a managed environment where much of the authentication is handled automatically through its SDK and console.
 
-One of the key insights gained was the importance of correctly configuring Firebase authentication within the Firebase console before attempting to implement it within the application code. Authentication providers such as email/password and Google sign-in must be explicitly enabled within the console.
+One of the key insights gained was the importance of correctly configuring Firebase authentication within the Firebase console before attempting to implement it within the application code. Authentication providers such as email/password and Google sign-in must be explicitly enabled within the console as is shown below:
+
+![Grad-Cam 1](images/login.png) 
 
 Another great lesson learned was comprehending the value of Firebase's built-in functionality. Features such as email verification, password reset, and Google account sign-in were relatively straightforward to implement once the basic Firebase initialization was correctly configured. This demonstrated how managed backend services can significantly reduce development time by providing pre-built solutions for common authentication tasks.
 
@@ -985,13 +1033,13 @@ Their collective support, from hardware provisioning and administrative facilita
 
 ## 8. References
 
-1. New study reveals jarring levels of crime experienced by Irish shop owners
-2. Irish Small and Medium Enterprises Association (ISME) estimates, cited in multiple sources incl. Irish Mirror (2023), Irish Times (2024–2025).
-3. An Garda Síochána reports on retail crime operations (2023–2025).
-4. Intentional Office Videos Dataset — Available from the Mendeley Data repository.
-5. Intentional Shop Videos Dataset — Available from Zenodo, an open-access research data platform.
-6. UCF Shoplifting Video Dataset — Public dataset hosted on Kaggle, containing surveillance-style videos used for anomaly detection research.
-7. Early Detection of Collective or Individual Theft Attempts Dataset (Real CCTV Footage) — Supplementary dataset containing real CCTV recordings used for behavioural analysis and theft detection research.
-8. Smart Surveillance: Real-Time Shoplifting Detection Using Deep Learning and YOLOv8.
-9. Detection of pre shoplifting suspicious behavior using deep learning.
-10. Suspicious Behavior Detection with Temporal Feature Extraction and Time-Series Classification for Shoplifting Crime Prevention (Sensors, 2023).
+1. [New study reveals jarring levels of crime experienced by Irish shop owners](https://extra.ie/2024/11/17/news/crime-irish-shop-owners)
+2. [Irish Small and Medium Enterprises Association (ISME) estimates, cited in multiple sources incl. Irish Mirror (2023), Irish Times (2024–2025)](https://www.irishmirror.ie/news/irish-news/gardai-cracking-down-retail-crime-31651683).
+3. [An Garda Síochána reports on retail crime operations (2023–2025)](https://retailsolutions.ie/blog/retail-security-in-ireland-tackling-the-surge-in-shoplifting/).
+4. [Intentional Office Videos Dataset — Available from the Mendeley Data repository](https://data.mendeley.com/datasets/r3yjf35hzr/1)
+5. [Intentional Shop Videos Dataset — Available from Zenodo, an open-access research data platform](https://zenodo.org/records/10149996)
+6. [UCF Shoplifting Video Dataset — Public dataset hosted on Kaggle, containing surveillance-style videos used for anomaly detection research](https://www.kaggle.com/datasets/minhajuddinmeraj/anomalydetection-dataset-ucf)
+7. [Early Detection of Collective or Individual Theft Attempts Dataset (Real CCTV Footage) — Supplementary dataset containing real CCTV recordings used for behavioural analysis and theft detection research](https://www.mediafire.com/file/jhegpgfiihhgj0y/Early_Detection_of_Collective_or_Individual_Theft_Attempts_Using_Long-term_Recurrent_Convolutional_Networks.zip/file)
+8. [Smart Surveillance: Real-Time Shoplifting Detection Using Deep Learning and YOLOv8](https://ieeexplore.ieee.org/document/11132287)
+9. [Detection of pre shoplifting suspicious behavior using deep learning](https://ieeexplore.ieee.org/abstract/document/10707900?casa_token=377i4tpt44EAAAAA:qGPElVZesiuLeqbUIVmaH66lfC5TYwSJH-vohK9ptKenlqHPm_hCAovrQxCmUqqagltsyh8)
+10. [Suspicious Behavior Detection with Temporal Feature Extraction and Time-Series Classification for Shoplifting Crime Prevention (Sensors, 2023)](https://www.mdpi.com/1424-8220/23/13/5811)
