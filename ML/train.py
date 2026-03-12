@@ -1382,7 +1382,6 @@ def main():
     pos_weight = torch.tensor(num_normal / (num_shoplifting + 1e-8)).to(DEVICE)
 
 
-    # criterion = BCEWithLogitsLoss(pos_weight=pos_weight)
     criterion = FocalLoss(alpha=0.25, gamma=2.0)
 
     optimizer = AdamW([

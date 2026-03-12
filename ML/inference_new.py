@@ -6,13 +6,13 @@ import boto3
 from ultralytics import YOLO
 from models.model import ShopliftingModel
 import requests
-import dotenv
+from dotenv import load_dotenv
 
 load_dotenv("keys.env")
 
-MAILGUN_API_KEY = os.getenv("MAILGUN_API")
+MAILGUN_API = os.getenv("MAILGUN_API")
 MAILGUN_DOMAIN = os.getenv("MAILGUN_DOMAIN")
-ALERT_EMAIL = os.getenv("EMAIL")
+EMAIL = os.getenv("EMAIL")
 
 def send_alert(prob):
 
@@ -23,10 +23,10 @@ def send_alert(prob):
 
     response = requests.post(
         f"https://api.mailgun.net/v3/{MAILGUN_DOMAIN}/messages",
-        auth=("api", MAILGUN_API_KEY),
+        auth=("api", MAILGUN_API),
         data={
-            "from": f"Shoplifting Detection <alert@{MAILGUN_DOMAIN}>",
-            "to": [ALERT_EMAIL],
+            "from": f"Shoplifting Detection <postmaster@{MAILGUN_DOMAIN}>",
+            "to": [EMAIL],
             "subject": "SHOPLIFTING DETECTED",
             "text": f"Shoplifting detected with probability {prob*100:.2f}%.\n\n Immediate attention required!!"
         }
@@ -34,6 +34,7 @@ def send_alert(prob):
     )
 
     print("Mailgun Response: ", response.status_code)
+    print(response.text)
 
 DEVICE = torch.device("cpu")
 NUM_FRAMES = 50
@@ -170,9 +171,9 @@ if frames_for_model:
 
 print(f"Shoplifting Probability: {prob:.4f}")
 
-if prob > 0.40:
+if prob > 0.60:
     print("Shoplifting Detected. Sending email alert....")
-    send_alert_email(prob)
+    send_alert(prob)
 
 """
 Overlays shoplifting/normal probability labels on the video.
@@ -229,7 +230,7 @@ cap.release()
 final_writer.release()
 
 """
-Uploads th final annotated vidoe to the OUTPUT_BUCKET under 'videos/' prefix, 
+Uploads the final annotated video to the OUTPUT_BUCKET under 'videos/' prefix, 
 appending '_labeled' to the filename. 
 """
 os.system(f"ffmpeg -y -i {local_final} -c:v libx264 -preset fast -crf 23 {local_final}_fixed.mp4")
