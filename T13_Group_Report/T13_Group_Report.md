@@ -62,7 +62,11 @@ By isolating "pre-crime" segments, they created a dataset tailored to early dete
 
 This paper follows a 2D CNN + RNN hybrid architecture. Video clips are decomposed into frames, resized and passed through a MobileNetV2 backbone pretrained on ImageNet for spatial feature extraction. Per-frame feature vectors are sequentially fed into a Bidirectional long short-term memory (BiLSTM) to model temporal dependencies across the clip. The BiLSTM output is flattened and passed through fully connected layers for multi-class classification (Normal, Suspicious, Shoplifting) using softmax. Training uses transfer learning, dropout for regularization, and standard cross-entropy loss. Evaluation relies on accuracy, precision, recall, F-1-score and ROC-AUC.
 
+![Fig 2: Model Diagram](/TheftSense/T13_Group_Report/images/fig2_model_diagram.png)
+
 **Results:**
+
+![Fig 2: Model Diagram](/TheftSense/T13_Group_Report/images/image24.png)
 
 The results highlight several important observations.
 
@@ -100,7 +104,11 @@ The paper utilizes the DCSASS dataset from Kaggle, which consists of videos cate
 
 The paper describes training an EfficientNetV2B0 model for the prediction of normal behaviour and shoplifting behavior. YOLOv8 was utilized for object detection, and ByteTracker was used for multi-object tracking.
 
+![efficientNetV2B0 model](/TheftSense/T13_Group_Report/images/image20.png)
+
 **Results:**
+
+![Performance Metrics Of EfficientNetV2B0 Model](/TheftSense/T13_Group_Report/images/performance_efficient.png)
 
 The results indicate that the proposed system achieves high classification performance for both normal and shoplifting activities. In particular, the shoplifting class achieves a precision and recall of 0.94, demonstrating strong capability in correctly identifying theft-related behaviour.
 
@@ -138,6 +146,8 @@ This dataset closely resembles real surveillance conditions.
 **Model:**
 
 Bounding box coordinates of people are extracted from each time frame using YOLOv5 with Deep Sort Tracking, converting video to a tabular time-series format representing object motion. These temporal features are then classified using time-series deep learning models (e.g. InceptionTime, XceptionTime, XCM, MiniRocket).
+
+![Fig 3: Proposed Model Pipeline](/TheftSense/T13_Group_Report/images/fig3_proposed_pipeline.png)
 
 **Results:**
 
@@ -209,12 +219,14 @@ In practice, the Jetson Nano option, generously offered by Prof. Zahran, arrived
 This decision reflects common open-source hardware trade-offs (as seen in embedded vision projects): prioritizing interoperability and rapid iteration over specialized acceleration when timelines are tight. Future extensions could revisit the AI Camera for Pi-only optimizations or pursue Jetson integration with dedicated drivers if performance gaps warrant it.
 
 > _Fig 1. The Raspberry Pi connected to the HQ Camera via a 500mm CSI cable, with a 6mm lens attached._
+![Fig 1: Raspberry Pi](/TheftSense/T13_Group_Report/images/pi5.jpg)
 
 ### 2.2 Amazon Web Services
 
 Early on, we knew that data friction issues would end up being a bottleneck. To address this, we chose to use Amazon Web Services on the back-end to avoid forcing users to store terabytes of videos locally. S3 allows you to store data in 'buckets' without the need to define datatypes beforehand, unlike Java where you need to declare what datatype a list must contain.
 
 > _Fig 2. An S3 bucket containing training videos for the model_
+![Fig 2: S3 bucket](/TheftSense/T13_Group_Report/images/s3_bucket.png)
 
 Using the AWS Software Development Kit (SDK) for python we were able to make a program that would take an input folder of videos and split them into training, testing, and validation sets, and then upload them to an S3 bucket. The benefit of this was that we could later access videos in the bucket on-demand when training the model and when accessing videos through the app. Here is an example of a python function to upload objects to the bucket from the AWS documentation:
 
@@ -335,6 +347,8 @@ The augmentation pipeline is implemented using PyTorch's torchvision transformat
 4. **Tensor Conversion**
    Frames are converted into PyTorch tensors to allow efficient GPU-based computation.
 
+![Tensor Conversion](/TheftSense/T13_Group_Report/images/tensor.png)
+
 These transformations are applied only to the training data, while validation and test datasets remain unchanged to ensure unbiased evaluation.
 
 #### Person Detection and Region Cropping
@@ -354,6 +368,8 @@ If no person is detected in a frame, the entire frame is used instead.
 
 This preprocessing step ensures that the model focuses primarily on human posture and motion, which are important cues for identifying shoplifting behaviour.
 
+![crop_person](/TheftSense/T13_Group_Report/images/crop_person.png)
+
 #### Spatial Feature Extraction
 
 Once frames are cropped and resized, spatial visual features are extracted using a deep convolutional neural network.
@@ -367,6 +383,8 @@ The system uses **EfficientNetV2-S** as the feature extractor. EfficientNetV2 is
 Each frame is processed independently by the spatial encoder, converting raw pixel data into a compact numerical representation describing important visual characteristics such as shapes, textures and object configurations.
 
 For a video clip containing 50 frames, the spatial encoder produces 50 feature vectors, one for each frame.
+
+![Spatial Encoder](/TheftSense/T13_Group_Report/images/spatial_encoder.png)
 
 #### Temporal Sequence Modelling
 
@@ -382,6 +400,8 @@ The temporal module performs the following operations:
 
 The self-attention mechanism allows the model to identify which frames contribute most strongly to the detection of suspicious behaviour.
 
+![forward](/TheftSense/T13_Group_Report/images/forward.png)
+
 #### Attention-Based Temporal Pooling
 
 After temporal processing, the sequence of frame representations must be converted into a single vector representing the entire clip.
@@ -389,6 +409,8 @@ After temporal processing, the sequence of frame representations must be convert
 Instead of using simple averaging, the model applies **attention-based temporal pooling**. This mechanism assigns learnable weights to each frame, allowing the model to emphasize frames that contain important behavioural cues.
 
 The weighted representations are combined into a single vector that summarizes the overall activity in the video.
+
+![Forward](/TheftSense/T13_Group_Report/images/forward2.png)
 
 #### Classification Layer
 
@@ -404,6 +426,8 @@ The final output layer produces a single logit value, which is converted into a 
 
 This probability represents the likelihood that the input video contains shoplifting activity.
 
+![Classification](/TheftSense/T13_Group_Report/images/classifier.png)
+
 #### Training Strategy
 
 A two-stage training strategy is used to improve training stability and performance.
@@ -416,6 +440,8 @@ Initially, the spatial feature extractor (EfficientNetV2) is frozen, meaning its
 
 After several epochs, selected layers of the spatial encoder are unfrozen and fine-tuned using a smaller learning rate. This allows the feature extractor to adapt to surveillance imagery while preserving previously learned features.
 
+![Training Strategy](/TheftSense/T13_Group_Report/images/epoch.png)
+
 #### Loss Function and Optimization
 
 The model uses **Focal Loss** as the training objective. This loss function is designed to address class imbalance by giving greater importance to difficult training examples.
@@ -425,6 +451,9 @@ In shoplifting detection datasets, normal behaviour typically appears more frequ
 Training is performed using the **AdamW optimizer**, which combines adaptive learning rates with weight decay regularization to improve generalization.
 
 Additionally, **mixed precision training** using PyTorch Automatic Mixed Precision (AMP) is used to reduce memory consumption and accelerate training on GPU hardware.
+
+![Focal Loss](/TheftSense/T13_Group_Report/images/focalloss_1.png)
+![Focal Loss](/TheftSense/T13_Group_Report/images/focalloss_2.png)
 
 #### Evaluation Metrics
 
@@ -493,6 +522,12 @@ $$0.2 \leq \text{threshold} \leq 0.6$$
 For each threshold value, precision, recall and F1 score were calculated. The threshold that produced the most balanced scores (**0.42**) on the validation dataset was selected as the final decision threshold.
 
 Optimizing the threshold in this way ensures that the model achieves the best balance between detecting suspicious behaviour and avoiding excessive false alarms.
+
+![Threshold](/TheftSense/T13_Group_Report/images/threshold.png)
+
+The model produced the following Prediction confidence and Probability Distribution:
+
+![Probability Distribution](/TheftSense/T13_Group_Report/images/prob_dist.png)
 
 The probability distribution shows distinct clustering of normal and shoplifting instances with partial overlap in the 0.35–0.55 confidence range. This overlap corresponds to ambiguous behavioural patterns where subtle motion cues challenge the temporal model.
 
