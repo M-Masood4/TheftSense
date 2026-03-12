@@ -844,6 +844,9 @@ The alert system performs the following steps:
 
 This allows security personnel to receive instant notifications when suspicious activity is detected.
 
+![E-Mail](images/detection.png) 
+
+
 #### Video Annotation and Visualization
 
 To make the model predictions interpretable, the system generates an annotated version of the processed video.
@@ -860,6 +863,9 @@ The overlay colour indicates the predicted state:
 - 🟢 **Green** – normal activity
 
 The annotation box is dynamically scaled relative to the video resolution to ensure that it does not obstruct a large portion of the frame.
+
+This provides a clear visual explanation of the model’s output. 
+
 
 #### Output Video Generation and Upload
 
