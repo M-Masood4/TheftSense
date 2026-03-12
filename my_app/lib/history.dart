@@ -170,16 +170,23 @@ class _HistoryPageState extends State<HistoryPage>  {
         '$incidentCamName Flagged Recent Activity As Suspicious'
       ];
 
+      var rng = Random();
+
       setState(() {
         listIncidents.clear(); // optional, if you don’t want duplicates
 
+        int addTime = 0;
+        int randTime = 100;
+
         for (String url in urls) {
+          addTime = rng.nextInt(3) + 3;
+          randTime -= addTime;
           int descSelector = Random().nextInt(descriptions.length);
           listIncidents.add(
             Incident(
-              id: 'Main Lobby Camera',
+              id: listIncidents.length.toString(),
               hidden_id: url,
-              timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
+              timestamp: DateTime.now().subtract(Duration(minutes: randTime)),
               cameraName: 'Main Lobby Camera',
               severity: IncidentSeverity.high,
               description: descriptions[descSelector],
@@ -187,6 +194,7 @@ class _HistoryPageState extends State<HistoryPage>  {
             ),
           );
         }
+        listIncidents = listIncidents.reversed.toList();
       });
 
       //debug
