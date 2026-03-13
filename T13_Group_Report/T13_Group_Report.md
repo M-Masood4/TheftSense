@@ -1,5 +1,5 @@
 # Shoplifting Detection System Report
-
+<br><br><br>
 **By:**
 
 - Advait Mathur (123104113)
@@ -7,13 +7,17 @@
 - Muhammed Masood (123395796)
 - Sakib Hossain (123379133)
 
+<br><br><br>
 **Github Repository:** [https://github.com/M-Masood4/TheftSense](https://github.com/M-Masood4/TheftSense)
 
+<br><br><br>
 **Academic Integrity Declaration**
 
 We declare that all the work presented in this project is our own, and that sources referenced in this project (whether that be academic papers or research papers from similar projects) have been properly acknowledged and referenced. 
 
-\newpage
+<br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br>
+<br><br><br><br><br><br>
 ---
 
 
