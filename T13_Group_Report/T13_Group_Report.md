@@ -2,14 +2,20 @@
 
 **By:**
 
-- Advait Mathur
-- Jack Garrett
-- Muhammed Masood
-- Sakib Hossain
+- Advait Mathur (123104113)
+- Jack Garrett (123347523)
+- Muhammed Masood (123395796)
+- Sakib Hossain (123379133)
 
 **Github Repository:** [https://github.com/M-Masood4/TheftSense](https://github.com/M-Masood4/TheftSense)
 
+**Academic Integrity Declaration**
+
+We declare that all the work presented in this project is our own, and that sources referenced in this project (whether that be academic papers or research papers from similar projects) have been properly acknowledged and referenced. 
+
+\newpage
 ---
+
 
 ## 1. Introduction
 
