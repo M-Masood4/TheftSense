@@ -1033,6 +1033,7 @@ Another aspect of development included the use of large language models such as 
 - Researched on development of Machine Learning models related to the project by acquiring relevant research papers.
 - Designed and Implemented Machine Learning model for the project.
 - Deployed model on Raspberry Pi 5.
+- Implemented & Integrated E-Mail Notification system via Mailgun API.
 - Labelled ~600 videos.
 
 **Jack:**
