@@ -29,7 +29,7 @@ use the boto3 client included in the SDK to connect to, and manage S3 buckets. Y
 As stated previously, these resources might be deleted after submission due to free-tier account limits. Also, the AWS SDK requires users to configure keys in their workspace (**aws configure**) before accessing resources which might also cause errors.
 
 Here is an example of a 'policy' (written in JSON) that is attached to a user. As AWS has many security restrictions, this allows the chosen 'user' to access bucket resources:
-
+```json
 {
 
 	"Version": "2012-10-17",
@@ -68,9 +68,9 @@ Here is an example of a 'policy' (written in JSON) that is attached to a user. A
 		}
 	]
 }
-
+```
 And here is a policy attached to an S3 bucket which allows CORS (Cross Origin Resource Sharing) access, allowing the app to make requests from a browser:
-
+```json
 [
     
     {
@@ -86,5 +86,5 @@ And here is a policy attached to an S3 bucket which allows CORS (Cross Origin Re
         "ExposeHeaders": []
     }
 ]
-
+```
 
